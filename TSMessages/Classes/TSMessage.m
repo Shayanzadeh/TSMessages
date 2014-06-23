@@ -212,7 +212,6 @@ __weak static UIViewController *_defaultViewController;
     
     if (!defaultViewController)
     {
-        NSLog(@"TSMessages: It is recommended to set a custom defaultViewController that is used to display the messages");
         defaultViewController = [UIApplication sharedApplication].keyWindow.rootViewController;
     }
     
@@ -255,6 +254,17 @@ __weak static UIViewController *_defaultViewController;
     if (!navigationController || navigationController.isNavigationBarHidden)
     {
         [messageView.viewController.view addSubview:messageView];
+        
+        // if it's a tab bar controller
+        UITabBarController *tabBarController = (UITabBarController *)([viewController isKindOfClass:[UITabBarController class]] ? viewController : viewController.parentViewController);
+        if (tabBarController)
+        {
+            // prevent navigation bar from moving
+            tabBarController.selectedViewController.navigationController.navigationBar.frame = CGRectMake(tabBarController.selectedViewController.navigationController.navigationBar.frame.origin.x,
+                                                                                                          tabBarController.selectedViewController.navigationController.navigationBar.frame.origin.y,
+                                                                                                          tabBarController.selectedViewController.navigationController.navigationBar.frame.size.width,
+                                                                                                          tabBarController.selectedViewController.navigationController.navigationBar.frame.size.height + statusBarHeight);
+        }
     }
     // if there is a navigation bar
     else
