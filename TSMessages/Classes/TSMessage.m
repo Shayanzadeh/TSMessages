@@ -108,6 +108,51 @@ __weak static UIViewController *_defaultViewController;
     }
 }
 
++ (BOOL)dismissProgressMessage
+{
+    TSMessage *sharedInstance = [TSMessage sharedMessage];
+    if (!sharedInstance.currentMessage) return NO;
+    
+    // search for message with endless duration (which we assume is TSMessageTypeProgress)
+    TSMessageView *progressMessage = nil;
+    NSUInteger index = 0;
+    for (TSMessageView *message in sharedInstance.messages)
+    {
+        if (message.duration == TSMessageDurationEndless)
+        {
+            progressMessage = message;
+            break;
+        }
+        index++;
+    }
+
+    if (!progressMessage) return NO;
+    
+    [sharedInstance dismissMessage:progressMessage completion:^{
+        if (sharedInstance.messages.count)
+        {
+            [sharedInstance.messages removeObjectAtIndex:index];
+        }
+        
+        if (sharedInstance.messages.count)
+        {
+            NSString *title = sharedInstance.currentMessage.title;
+            NSString *subtitle = sharedInstance.currentMessage.subtitle;
+            
+            for (TSMessageView *n in sharedInstance.messages)
+            {
+                // avoid displaying the same messages twice in a row
+                BOOL equalTitle = ([n.title isEqualToString:title] || (!n.title && !title));
+                BOOL equalSubtitle = ([n.subtitle isEqualToString:subtitle] || (!n.subtitle && !subtitle));
+                
+                if (!equalTitle && !equalSubtitle) [sharedInstance displayMessage:n];
+            }
+        }
+    }];
+    
+    return YES;
+}
+
 + (BOOL)dismissCurrentMessageForce:(BOOL)force
 {
     TSMessageView *currentMessage = [TSMessage sharedMessage].currentMessage;
@@ -125,7 +170,6 @@ __weak static UIViewController *_defaultViewController;
     return [self dismissCurrentMessageForce:NO];
 }
 
-#warning Why '!!' ?
 + (BOOL)isDisplayingMessage
 {
     return !![TSMessage sharedMessage].currentMessage;

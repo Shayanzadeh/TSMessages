@@ -116,6 +116,8 @@ typedef void (^TSMessageCallback)(TSMessageView *messageView);
  */
 + (BOOL)dismissCurrentMessageForce:(BOOL)force;
 
++ (BOOL)dismissProgressMessage;
+
 /** Indicates whether a message is currently being displayed.
 
  @return YES if a message is currently being displayed.

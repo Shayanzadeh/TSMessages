@@ -324,23 +324,7 @@ static const CGFloat kTSDistanceBetweenTitleAndSubtitle = 1.0;
     // increase frame of background view because of the spring animation
     if (self.position == TSMessagePositionTop)
     {
-        float topOffset = 0.f;
-        
-        UINavigationController *navigationController = self.viewController.navigationController;
-        
-        if (!navigationController && [self.viewController isKindOfClass:[UINavigationController class]])
-        {
-            navigationController = (UINavigationController *)self.viewController;
-        }
-        
-        BOOL isNavBarIsHidden = !navigationController || self.viewController.navigationController.navigationBarHidden;
-        BOOL isNavBarIsOpaque = !self.viewController.navigationController.navigationBar.isTranslucent && self.viewController.navigationController.navigationBar.alpha == 1;
-        
-        if (isNavBarIsHidden || isNavBarIsOpaque)
-        {
-            topOffset = -30.f;
-        }
-        
+        CGFloat topOffset = -30.f;
         backgroundFrame = UIEdgeInsetsInsetRect(backgroundFrame, UIEdgeInsetsMake(topOffset, 0.f, topOffset, 0.f));
     }
     
@@ -383,14 +367,9 @@ static const CGFloat kTSDistanceBetweenTitleAndSubtitle = 1.0;
     }
     else
     {
-        __block CGFloat offset = 0;
-        
-        void (^addStatusBarHeightToVerticalOffset)() = ^void() {
-            BOOL isPortrait = UIInterfaceOrientationIsPortrait([[UIApplication sharedApplication] statusBarOrientation]);
-            CGSize statusBarSize = [UIApplication sharedApplication].statusBarFrame.size;
-            
-            offset += isPortrait ? statusBarSize.height : statusBarSize.width;
-        };
+        BOOL isPortrait = UIInterfaceOrientationIsPortrait([[UIApplication sharedApplication] statusBarOrientation]);
+        CGSize statusBarSize = [UIApplication sharedApplication].statusBarFrame.size;
+        CGFloat offset = isPortrait ? statusBarSize.height : statusBarSize.width;
         
         if ([self.viewController isKindOfClass:[UINavigationController class]] || [self.viewController.parentViewController isKindOfClass:[UINavigationController class]])
         {
@@ -410,19 +389,10 @@ static const CGFloat kTSDistanceBetweenTitleAndSubtitle = 1.0;
             // if navbar is visible
             if (![self isNavigationBarInNavigationControllerHidden:navigationController])
             {
-#warning comment out next line if you want to appear over navbar
-                offset = [navigationController navigationBar].bounds.size.height;
-                addStatusBarHeightToVerticalOffset();
             }
             else if (isViewIsUnderStatusBar)
             {
-                addStatusBarHeightToVerticalOffset();
             }
-        }
-        // if self or parent NOT NavigationController
-        else
-        {
-            addStatusBarHeightToVerticalOffset();
         }
         
         if (self.position == TSMessagePositionTop)
