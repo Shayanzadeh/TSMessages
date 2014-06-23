@@ -95,7 +95,7 @@
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <connections>
-                                    <action selector="didTapPermanent:" destination="3" eventType="touchUpInside" id="F0U-vO-f5A"/>
+                                    <segue destination="VWt-K2-2qD" kind="push" id="KZ1-sa-IWJ"/>
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="36v-bR-L60">
@@ -242,6 +242,25 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="12" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="833" y="146"/>
+        </scene>
+        <!--View Controller-->
+        <scene sceneID="Kqr-0t-XDq">
+            <objects>
+                <viewController id="VWt-K2-2qD" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="lBL-M6-pg6"/>
+                        <viewControllerLayoutGuide type="bottom" id="2bT-au-zRv"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="xMV-tH-qev">
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                    </view>
+                    <navigationItem key="navigationItem" id="SvQ-s2-cNo"/>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="k5Z-no-HC8" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1241" y="130"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="Qju-rT-u26">

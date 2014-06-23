@@ -248,34 +248,45 @@ __weak static UIViewController *_defaultViewController;
     [[UIApplication sharedApplication] setStatusBarHidden:YES withAnimation:UIStatusBarAnimationNone];
 
     // add view
-    UIViewController *viewController = messageView.viewController;
-    UINavigationController *navigationController = (UINavigationController *)([viewController isKindOfClass:[UINavigationController class]] ? viewController : viewController.parentViewController);
     
-    if (!navigationController || navigationController.isNavigationBarHidden)
+    // check if view is a UINavigationController or a child of one
+    if ([messageView.viewController isKindOfClass:[UINavigationController class]] || messageView.viewController.navigationController)
     {
-        [messageView.viewController.view addSubview:messageView];
+        // find root UINavigationController for view
+        UINavigationController *navController = (UINavigationController *)(messageView.viewController.navigationController ?
+                                                                           messageView.viewController.navigationController : messageView.viewController);
+        // prevent navigation bar from moving
+        navController.navigationBar.frame = CGRectMake(navController.navigationBar.frame.origin.x,
+                                                       navController.navigationBar.frame.origin.y,
+                                                       navController.navigationBar.frame.size.width,
+                                                       navController.navigationBar.frame.size.height + statusBarHeight);
         
-        // if it's a tab bar controller
-        UITabBarController *tabBarController = (UITabBarController *)([viewController isKindOfClass:[UITabBarController class]] ? viewController : viewController.parentViewController);
-        if (tabBarController)
-        {
-            // prevent navigation bar from moving
-            tabBarController.selectedViewController.navigationController.navigationBar.frame = CGRectMake(tabBarController.selectedViewController.navigationController.navigationBar.frame.origin.x,
-                                                                                                          tabBarController.selectedViewController.navigationController.navigationBar.frame.origin.y,
-                                                                                                          tabBarController.selectedViewController.navigationController.navigationBar.frame.size.width,
-                                                                                                          tabBarController.selectedViewController.navigationController.navigationBar.frame.size.height + statusBarHeight);
-        }
+        [navController.view insertSubview:messageView aboveSubview:navController.navigationBar];
     }
-    // if there is a navigation bar
+    // check if view is a UITabBarController
+    else if ([messageView.viewController isKindOfClass:[UITabBarController class]])
+    {
+        UITabBarController *tabBarController = (UITabBarController *)messageView.viewController;
+        
+        // iterate through it's viewControllers
+        for (UIViewController *vc in tabBarController.viewControllers)
+        {
+            // if viewController is a UINavigationController, prevent navigation bar from moving
+            if ([vc isKindOfClass:[UINavigationController class]])
+            {
+                UINavigationController *navController = (UINavigationController *)vc;
+                navController.navigationBar.frame = CGRectMake(navController.navigationBar.frame.origin.x,
+                                                               navController.navigationBar.frame.origin.y,
+                                                               navController.navigationBar.frame.size.width,
+                                                               navController.navigationBar.frame.size.height + statusBarHeight);
+            }
+        }
+        
+        [tabBarController.view addSubview:messageView];
+    }
     else
     {
-        // prevent navigation bar from moving
-        messageView.viewController.navigationController.navigationBar.frame = CGRectMake(messageView.viewController.navigationController.navigationBar.frame.origin.x,
-                                                                                         messageView.viewController.navigationController.navigationBar.frame.origin.y,
-                                                                                         messageView.viewController.navigationController.navigationBar.frame.size.width,
-                                                                                         messageView.viewController.navigationController.navigationBar.frame.size.height + statusBarHeight);
-
-        [navigationController.view insertSubview:messageView aboveSubview:navigationController.navigationBar];
+        [messageView.viewController.view addSubview:messageView];
     }
 
     // animate
