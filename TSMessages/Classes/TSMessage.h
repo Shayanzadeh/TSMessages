@@ -14,7 +14,8 @@ typedef NS_ENUM(NSInteger, TSMessageType) {
     TSMessageTypeDefault = 0,
     TSMessageTypeSuccess,
     TSMessageTypeWarning,
-    TSMessageTypeError
+    TSMessageTypeError,
+    TSMessageTypeProgress
 };
 
 typedef NS_ENUM(NSInteger, TSMessagePosition) {

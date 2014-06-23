@@ -11,7 +11,7 @@
 #import "TSMessageView+Private.h"
 
 #define kTSMessageDisplayTime 1.5
-#define kTSMessageAnimationDuration 0.3
+#define kTSMessageAnimationDuration 0.4
 #define kTSMessageExtraDisplayTimePerPixel 0.04
 #define kTSDesignFileName @"TSMessagesDefaultDesign.json"
 
@@ -125,6 +125,7 @@ __weak static UIViewController *_defaultViewController;
     return [self dismissCurrentMessageForce:NO];
 }
 
+#warning Why '!!' ?
 + (BOOL)isDisplayingMessage
 {
     return !![TSMessage sharedMessage].currentMessage;
@@ -199,6 +200,9 @@ __weak static UIViewController *_defaultViewController;
 {
     [messageView prepareForDisplay];
     
+    // hide status bar
+    [[UIApplication sharedApplication] setStatusBarHidden:YES withAnimation:UIStatusBarAnimationNone];
+    
     // add view
     UIViewController *viewController = messageView.viewController;
     UINavigationController *navigationController = (UINavigationController *)([viewController isKindOfClass:[UINavigationController class]] ? viewController : viewController.parentViewController);
@@ -209,13 +213,14 @@ __weak static UIViewController *_defaultViewController;
     }
     else
     {
+#warning change to aboveSubview if you want to appear over navbar
         [navigationController.view insertSubview:messageView belowSubview:navigationController.navigationBar];
     }
 
     // animate
     [UIView animateWithDuration:kTSMessageAnimationDuration + 0.1
                           delay:0
-         usingSpringWithDamping:0.8
+         usingSpringWithDamping:0.7
           initialSpringVelocity:0.f
                         options:UIViewAnimationOptionCurveEaseInOut | UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionAllowUserInteraction
                      animations:^{
@@ -262,6 +267,9 @@ __weak static UIViewController *_defaultViewController;
     [UIView animateWithDuration:kTSMessageAnimationDuration animations:^{
          messageView.center = dismissToPoint;
      } completion:^(BOOL finished) {
+         // show status bar
+         [[UIApplication sharedApplication] setStatusBarHidden:NO withAnimation:UIStatusBarAnimationNone];
+
          [messageView removeFromSuperview];
 
          if (completion) completion();

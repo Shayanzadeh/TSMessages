@@ -20,6 +20,7 @@
     if (_toolbar == nil) {
         _toolbar = [[UIToolbar alloc] initWithFrame:self.bounds];
         _toolbar.userInteractionEnabled = NO;
+        _toolbar.translucent = NO;
         _toolbar.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
 #if __IPHONE_OS_VERSION_MAX_ALLOWED >= 70000
         [_toolbar setBackgroundImage:nil forToolbarPosition:UIBarPositionAny barMetrics:UIBarMetricsDefault]; // remove background set through the appearence proxy
@@ -30,18 +31,17 @@
     return _toolbar;
 }
 
-- (void)setBlurTintColor:(UIColor *)blurTintColor
+- (void)setBlurBackgroundColor:(UIColor *)blurBackgroundColor
 {
-    if ([self.toolbar respondsToSelector:@selector(setBarTintColor:)]) {
-        [self.toolbar performSelector:@selector(setBarTintColor:) withObject:blurTintColor];
-    }
+    if ([self.toolbar respondsToSelector:@selector(setBackgroundColor:)])
+        [self.toolbar performSelector:@selector(setBackgroundColor:) withObject:blurBackgroundColor];
 }
 
-- (UIColor *)blurTintColor
+- (UIColor *)blurBackgroundColor
 {
-    if ([self.toolbar respondsToSelector:@selector(barTintColor)]) {
-        return [self.toolbar performSelector:@selector(barTintColor)];
-    }
+    if ([self.toolbar respondsToSelector:@selector(backgroundColor)])
+        return [self.toolbar performSelector:@selector(backgroundColor)];
+    
     return nil;
 }
 

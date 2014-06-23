@@ -9,5 +9,5 @@
 #import <UIKit/UIKit.h>
 
 @interface TSBlurView : UIView
-@property (nonatomic, strong) UIColor *blurTintColor;
+@property (nonatomic, strong) UIColor *blurBackgroundColor;
 @end

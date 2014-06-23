@@ -102,9 +102,7 @@
     TSMessageView *view = [TSMessage messageWithTitle:NSLocalizedString(@"New version available", nil)
                                              subtitle:NSLocalizedString(@"Please update our app. We would be very thankful", nil)
                                                  type:TSMessageTypeDefault];
-    
-    view.delegate = self;
-    
+        
     [view setButtonWithTitle:NSLocalizedString(@"Update", nil) callback:^(TSMessageView *messageView) {
         [messageView dismiss];
 
@@ -153,7 +151,7 @@
 
 - (IBAction)didTapCustomImage:(id)sender
 {
-    UIImage *image = [UIImage imageNamed:@"MessageButtonBackground.png"];
+    UIImage *image = [UIImage imageNamed:@"AvatarPlaceholderLarge.png"];
     
     TSMessageView *messageView = [TSMessage messageWithTitle:NSLocalizedString(@"Custom image", nil)
                                                     subtitle:NSLocalizedString(@"This uses an image you can define", nil)
@@ -217,6 +215,13 @@
     [TSMessage displayMessageWithTitle:NSLocalizedString(@"Updated to custom design file", nil)
                               subtitle:NSLocalizedString(@"From now on, all the titles of success messages are larger", nil)
                                   type:TSMessageTypeSuccess];
+}
+
+- (IBAction)didTapProgress:(id)sender
+{
+    [TSMessage displayMessageWithTitle:NSLocalizedString(@"Loging in", nil)
+                              subtitle:nil
+                                  type:TSMessageTypeProgress];
 }
 
 @end

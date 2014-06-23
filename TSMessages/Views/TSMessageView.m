@@ -14,6 +14,8 @@
 #import "TSMessageView+Private.h"
 
 #define TSMessageViewPadding 15.0
+#define TSMessageViewPaddingY 10.0
+static const CGFloat kTSDistanceBetweenTitleAndSubtitle = 1.0;
 
 @interface TSMessageView () <UIGestureRecognizerDelegate>
 @property (nonatomic) NSDictionary *config;
@@ -21,6 +23,7 @@
 @property (nonatomic) UILabel *contentLabel;
 @property (nonatomic) UIImageView *iconImageView;
 @property (nonatomic) UIButton *button;
+@property (nonatomic) UIActivityIndicatorView *activityIndicatorView;
 @property (nonatomic) UITapGestureRecognizer *tapRecognizer;
 @property (nonatomic) UISwipeGestureRecognizer *swipeRecognizer;
 @property (nonatomic) TSBlurView *backgroundBlurView;
@@ -34,8 +37,8 @@
 {
     if ((self = [self init]))
     {
-        self.userDismissEnabled = YES;
-        self.duration = TSMessageDurationAutomatic;
+        self.userDismissEnabled = type == TSMessageTypeProgress ? NO : YES;
+        self.duration = type == TSMessageTypeProgress ? TSMessageDurationEndless : TSMessageDurationAutomatic;
         self.position = TSMessagePositionTop;
         
         [self setupConfigForType:type];
@@ -43,6 +46,7 @@
         [self setupTitle:title];
         [self setupSubtitle:subtitle];
         [self setupImage:image];
+        [self setUpActivityIndicator:type];
         [self setupAutoresizing];
         [self setupGestureRecognizers];
     }
@@ -61,6 +65,7 @@
         case TSMessageTypeError: config = @"error"; break;
         case TSMessageTypeSuccess: config = @"success"; break;
         case TSMessageTypeWarning: config = @"warning"; break;
+        case TSMessageTypeProgress: config = @"progress"; break;
             
         default: config = @"message"; break;
     }
@@ -72,7 +77,7 @@
 {
     self.backgroundBlurView = [[TSBlurView alloc] init];
     self.backgroundBlurView.autoresizingMask = UIViewAutoresizingFlexibleWidth;
-    self.backgroundBlurView.blurTintColor = [UIColor colorWithHexString:self.config[@"backgroundColor"]];
+    self.backgroundBlurView.backgroundColor = [UIColor colorWithHexString:self.config[@"backgroundColor"]];
     
     [self addSubview:self.backgroundBlurView];
 }
@@ -136,7 +141,7 @@
     if (!image && self.config[@"imageName"] != [NSNull null] && [self.config[@"imageName"] length]) image = [UIImage imageNamed:self.config[@"imageName"]];
     
     self.iconImageView = [[UIImageView alloc] initWithImage:image];
-    self.iconImageView.frame = CGRectMake(TSMessageViewPadding * 2, TSMessageViewPadding, image.size.width, image.size.height);
+    self.iconImageView.frame = CGRectMake(TSMessageViewPadding * 2, TSMessageViewPaddingY, image.size.width, image.size.height);
     
     [self addSubview:self.iconImageView];
 }
@@ -152,6 +157,18 @@
     [self addGestureRecognizer:self.swipeRecognizer];
 }
 
+- (void)setUpActivityIndicator:(TSMessageType)type
+{
+    if (type != TSMessageTypeProgress) return;
+    
+    self.activityIndicatorView = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhite];
+    self.activityIndicatorView.color = [UIColor colorWithHexString:self.config[@"textColor"] alpha:1];
+    self.activityIndicatorView.frame = CGRectMake(TSMessageViewPadding * 2, TSMessageViewPaddingY, self.activityIndicatorView.frame.size.width, self.activityIndicatorView.frame.size.height);
+    [self.activityIndicatorView startAnimating];
+    
+    [self addSubview:self.activityIndicatorView];
+}
+
 #pragma mark - Message view attributes and actions
 
 - (void)setButtonWithTitle:(NSString *)title callback:(TSMessageCallback)callback
@@ -162,6 +179,7 @@
     UIColor *buttonTitleShadowColor = [UIColor colorWithHexString:self.config[@"buttonTitleShadowColor"] alpha:1];
     UIColor *buttonTitleTextColor = [UIColor colorWithHexString:self.config[@"buttonTitleTextColor"] alpha:1];
     UIColor *fontColor = [UIColor colorWithHexString:self.config[@"textColor"] alpha:1];
+    NSString *fontName = self.config[@"titleFontName"];
     
     if (!buttonBackgroundImage) buttonBackgroundImage = [[UIImage imageNamed:self.config[@"MessageButtonBackground"]] resizableImageWithCapInsets:UIEdgeInsetsMake(15.0, 12.0, 15.0, 11.0)];
     if (!buttonTitleShadowColor) buttonTitleShadowColor = [UIColor colorWithHexString:self.config[@"shadowColor"] alpha:1];
@@ -169,7 +187,7 @@
     
     self.button = [UIButton buttonWithType:UIButtonTypeCustom];
     self.button.contentEdgeInsets = UIEdgeInsetsMake(0, 5, 0, 5);
-    self.button.titleLabel.font = [UIFont boldSystemFontOfSize:14];
+    self.button.titleLabel.font = fontName ? [UIFont fontWithName:fontName size:14] : [UIFont boldSystemFontOfSize:14];
     self.button.titleLabel.shadowOffset = CGSizeMake([self.config[@"buttonTitleShadowOffsetX"] floatValue], [self.config[@"buttonTitleShadowOffsetY"] floatValue]);
     
     [self.button setTitle:title forState:UIControlStateNormal];
@@ -215,10 +233,11 @@
     UIImage *image = self.iconImageView.image;
     
     if (image) textSpaceLeft += image.size.width + 2 * TSMessageViewPadding;
+    else if (self.activityIndicatorView) textSpaceLeft += self.activityIndicatorView.frame.size.width + 2 * TSMessageViewPadding;
     
     // title
     self.titleLabel.frame = CGRectMake(textSpaceLeft,
-                                       TSMessageViewPadding,
+                                       TSMessageViewPaddingY,
                                        screenWidth - TSMessageViewPadding - textSpaceLeft - textSpaceRight,
                                        0.0);
     [self.titleLabel sizeToFit];
@@ -227,7 +246,7 @@
     if (self.contentLabel)
     {
         self.contentLabel.frame = CGRectMake(textSpaceLeft,
-                                             self.titleLabel.frame.origin.y + self.titleLabel.frame.size.height + 5.0,
+                                             self.titleLabel.frame.origin.y + self.titleLabel.frame.size.height + kTSDistanceBetweenTitleAndSubtitle,
                                              screenWidth - TSMessageViewPadding - textSpaceLeft - textSpaceRight,
                                              0.0);
         [self.contentLabel sizeToFit];
@@ -239,19 +258,47 @@
         currentHeight = self.titleLabel.frame.origin.y + self.titleLabel.frame.size.height;
     }
     
-    currentHeight += TSMessageViewPadding;
+    currentHeight += TSMessageViewPaddingY;
     
     // image
     if (self.iconImageView)
     {
+        CGFloat iconHeight = self.iconImageView.frame.origin.y + self.iconImageView.frame.size.height + TSMessageViewPaddingY;
+        CGFloat centerOffset = round((iconHeight - currentHeight) / 2.0);
+
         // check if that makes the popup larger (height)
-        if (self.iconImageView.frame.origin.y + self.iconImageView.frame.size.height + TSMessageViewPadding > currentHeight)
+        if (iconHeight > currentHeight)
         {
-            currentHeight = self.iconImageView.frame.origin.y + self.iconImageView.frame.size.height;
+            currentHeight = iconHeight;
+            
+            // center the title & subtitle labels
+            self.titleLabel.center = CGPointMake(self.titleLabel.center.x, self.titleLabel.center.y + centerOffset);
+            self.contentLabel.center = CGPointMake(self.contentLabel.center.x, self.contentLabel.center.y + centerOffset);
         }
         else
         {
             self.iconImageView.center = CGPointMake([self.iconImageView center].x, round(currentHeight / 2.0));
+        }
+    }
+    
+    // activity indicator
+    if (self.activityIndicatorView)
+    {
+        CGFloat activityIndicatorHeight = self.activityIndicatorView.frame.origin.y + self.activityIndicatorView.frame.size.height + TSMessageViewPaddingY;
+        CGFloat centerOffset = round((activityIndicatorHeight - currentHeight) / 2.0);
+        
+        // check if that makes the popup larger (height)
+        if (activityIndicatorHeight > currentHeight)
+        {
+            currentHeight = activityIndicatorHeight;
+            
+            // center title & subtitle labels
+            self.titleLabel.center = CGPointMake(self.titleLabel.center.x, self.titleLabel.center.y + centerOffset);
+            self.contentLabel.center = CGPointMake(self.contentLabel.center.x, self.contentLabel.center.y + centerOffset);
+        }
+        else
+        {
+            self.activityIndicatorView.center = CGPointMake(self.activityIndicatorView.center.x, round(currentHeight / 2.0));
         }
     }
     
@@ -360,8 +407,10 @@
                 isViewIsUnderStatusBar = ![self isNavigationBarInNavigationControllerHidden:navigationController];
             }
             
+            // if navbar is visible
             if (![self isNavigationBarInNavigationControllerHidden:navigationController])
             {
+#warning comment out next line if you want to appear over navbar
                 offset = [navigationController navigationBar].bounds.size.height;
                 addStatusBarHeightToVerticalOffset();
             }
@@ -370,6 +419,7 @@
                 addStatusBarHeightToVerticalOffset();
             }
         }
+        // if self or parent NOT NavigationController
         else
         {
             addStatusBarHeightToVerticalOffset();
@@ -474,11 +524,16 @@
  UINavigationController or isHidden on the navigationBar of the UINavigationController */
 - (BOOL)isNavigationBarInNavigationControllerHidden:(UINavigationController *)navController
 {
-    if (navController.isNavigationBarHidden) {
+    if (navController.isNavigationBarHidden)
+    {
         return YES;
-    } else if (navController.navigationBar.isHidden) {
+    }
+    else if (navController.navigationBar.isHidden)
+    {
         return YES;
-    } else {
+    }
+    else
+    {
         return NO;
     }
 }

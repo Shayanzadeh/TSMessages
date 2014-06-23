@@ -149,14 +149,14 @@
 		3A68D0F35A2448709D775945 /* Source Files */ = {
 			isa = PBXGroup;
 			children = (
-				E6F8608730F84A098DEB8A05 /* TSMessage.h */,
-				2E35B5F218AED63C0000C422 /* TSMessage+Private.h */,
-				09E89CC7D8724A98B872DF42 /* TSMessage.m */,
-				53202C8D4E6B4B018F7C74D6 /* TSMessageView.h */,
-				2EA90CF918B2AB60008B71EF /* TSMessageView+Private.h */,
-				BEBBB8EDFAD74B189406A0B0 /* TSMessageView.m */,
 				3B17E30CA6F248738B1CCE1F /* TSBlurView.h */,
 				24F689F22A5A42809DBA68A7 /* TSBlurView.m */,
+				2E35B5F218AED63C0000C422 /* TSMessage+Private.h */,
+				E6F8608730F84A098DEB8A05 /* TSMessage.h */,
+				09E89CC7D8724A98B872DF42 /* TSMessage.m */,
+				2EA90CF918B2AB60008B71EF /* TSMessageView+Private.h */,
+				53202C8D4E6B4B018F7C74D6 /* TSMessageView.h */,
+				BEBBB8EDFAD74B189406A0B0 /* TSMessageView.m */,
 			);
 			name = "Source Files";
 			sourceTree = "<group>";
