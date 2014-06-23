@@ -8,13 +8,13 @@ The message moves from the top of the screen underneath the navigation bar and s
 There are 4 different types already set up for you: Success, Error, Warning, Message.
                    DESC
 
-  s.homepage     = "https://github.com/Shayanzadeh/TSMessages"
+  s.homepage     = "https://github.com/toursprung/TSMessages/"
 
   s.license      = 'MIT'
 
   s.author       = { "Felix Krause" => "krausefx@gmail.com" }
 
-  s.source       = { :git => "https://github.com/Shayanzadeh/TSMessages", :tag => "#{s.version}"}
+  s.source       = { :git => "https://github.com/Shayanzadeh/TSMessages/", :branch => 'develop'}
 
   s.platform     = :ios, '5.0'
 

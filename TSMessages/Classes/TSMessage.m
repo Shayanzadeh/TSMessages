@@ -201,8 +201,9 @@ __weak static UIViewController *_defaultViewController;
     [messageView prepareForDisplay];
     
     // hide status bar
+    CGFloat statusBarHeight = [UIApplication sharedApplication].statusBarFrame.size.height;
     [[UIApplication sharedApplication] setStatusBarHidden:YES withAnimation:UIStatusBarAnimationNone];
-    
+
     // add view
     UIViewController *viewController = messageView.viewController;
     UINavigationController *navigationController = (UINavigationController *)([viewController isKindOfClass:[UINavigationController class]] ? viewController : viewController.parentViewController);
@@ -211,10 +212,16 @@ __weak static UIViewController *_defaultViewController;
     {
         [messageView.viewController.view addSubview:messageView];
     }
+    // if there is a navigation bar
     else
     {
-#warning change to aboveSubview if you want to appear over navbar
-        [navigationController.view insertSubview:messageView belowSubview:navigationController.navigationBar];
+        // prevent navigation bar from moving
+        messageView.viewController.navigationController.navigationBar.frame = CGRectMake(messageView.viewController.navigationController.navigationBar.frame.origin.x,
+                                                                                         messageView.viewController.navigationController.navigationBar.frame.origin.y,
+                                                                                         messageView.viewController.navigationController.navigationBar.frame.size.width,
+                                                                                         messageView.viewController.navigationController.navigationBar.frame.size.height + statusBarHeight);
+
+        [navigationController.view insertSubview:messageView aboveSubview:navigationController.navigationBar];
     }
 
     // animate
@@ -267,8 +274,9 @@ __weak static UIViewController *_defaultViewController;
     [UIView animateWithDuration:kTSMessageAnimationDuration animations:^{
          messageView.center = dismissToPoint;
      } completion:^(BOOL finished) {
-         // show status bar
-         [[UIApplication sharedApplication] setStatusBarHidden:NO withAnimation:UIStatusBarAnimationNone];
+         // show status bar if no more messages left to display
+         if (self.messages.count == 1)
+             [[UIApplication sharedApplication] setStatusBarHidden:NO withAnimation:UIStatusBarAnimationNone];
 
          [messageView removeFromSuperview];
 
