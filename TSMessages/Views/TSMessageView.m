@@ -12,10 +12,11 @@
 #import "TSMessage+Private.h"
 #import "TSMessageView+Private.h"
 
-#define TSMessageViewPaddingX 10.0
-#define TSMessageViewPaddingY 7.5
-static const CGFloat kTSDistanceBetweenTitleAndSubtitle = 1.0;
-static const CGFloat kTSDistanceBetweenTitleAndIcon = 10.0;
+#define TSMessageViewPaddingX 15.0
+#define TSMessageViewPaddingY 5.0
+#define TSMessageViewHeight 64.0 // status bar + navigation bar
+
+static const CGFloat kTSDistanceBetweenTitleAndSubtitle = 0.0;
 
 @interface TSMessageView ()
 @property (nonatomic) NSDictionary *config;
@@ -45,7 +46,7 @@ static const CGFloat kTSDistanceBetweenTitleAndIcon = 10.0;
         [self setupTitle:title];
         [self setupSubtitle:subtitle];
         [self setupImage:image];
-        [self setUpActivityIndicator:type];
+        if (type == TSMessageTypeProgress) [self setUpActivityIndicator];
         [self setupAutoresizing];
         [self setupGestureRecognizers];
     }
@@ -96,7 +97,8 @@ static const CGFloat kTSDistanceBetweenTitleAndIcon = 10.0;
     
     self.titleLabel = [[UILabel alloc] init];
     self.titleLabel.numberOfLines = 0;
-    self.titleLabel.lineBreakMode = NSLineBreakByWordWrapping;
+    self.titleLabel.lineBreakMode = NSLineBreakByTruncatingTail;
+    self.titleLabel.adjustsFontSizeToFitWidth = YES;
     self.titleLabel.shadowOffset = CGSizeMake([self.config[@"shadowOffsetX"] floatValue], [self.config[@"shadowOffsetY"] floatValue]);
     self.titleLabel.shadowColor = [UIColor colorWithHexString:self.config[@"shadowColor"] alpha:1];
     self.titleLabel.backgroundColor = [UIColor clearColor];
@@ -122,7 +124,8 @@ static const CGFloat kTSDistanceBetweenTitleAndIcon = 10.0;
     
     self.contentLabel = [[UILabel alloc] init];
     self.contentLabel.numberOfLines = 0;
-    self.contentLabel.lineBreakMode = NSLineBreakByWordWrapping;
+    self.contentLabel.lineBreakMode = NSLineBreakByTruncatingTail;
+    self.titleLabel.adjustsFontSizeToFitWidth = YES;
     self.contentLabel.shadowOffset = CGSizeMake([self.config[@"shadowOffsetX"] floatValue], [self.config[@"shadowOffsetY"] floatValue]);
     self.contentLabel.shadowColor = [UIColor colorWithHexString:self.config[@"shadowColor"] alpha:1];
     self.contentLabel.backgroundColor = [UIColor clearColor];
@@ -140,7 +143,7 @@ static const CGFloat kTSDistanceBetweenTitleAndIcon = 10.0;
     if (!image && self.config[@"imageName"] != [NSNull null] && [self.config[@"imageName"] length]) image = [UIImage imageNamed:self.config[@"imageName"]];
     
     self.iconImageView = [[UIImageView alloc] initWithImage:image];
-    self.iconImageView.frame = CGRectMake(TSMessageViewPaddingX, TSMessageViewPaddingY, image.size.width, image.size.height);
+    self.iconImageView.frame = CGRectMake(TSMessageViewPaddingX, round((TSMessageViewHeight-image.size.height)/2) , image.size.width, image.size.height);
     
     [self addSubview:self.iconImageView];
 }
@@ -156,13 +159,12 @@ static const CGFloat kTSDistanceBetweenTitleAndIcon = 10.0;
     [self addGestureRecognizer:self.swipeRecognizer];
 }
 
-- (void)setUpActivityIndicator:(TSMessageType)type
+- (void)setUpActivityIndicator
 {
-    if (type != TSMessageTypeProgress) return;
-    
     self.activityIndicatorView = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhite];
     self.activityIndicatorView.color = [UIColor colorWithHexString:self.config[@"textColor"] alpha:1];
-    self.activityIndicatorView.frame = CGRectMake(TSMessageViewPaddingX, TSMessageViewPaddingY, self.activityIndicatorView.frame.size.width, self.activityIndicatorView.frame.size.height);
+    self.activityIndicatorView.transform = CGAffineTransformMakeScale(0.7, 0.7);
+    self.activityIndicatorView.frame = CGRectMake(TSMessageViewPaddingX, (20 - self.activityIndicatorView.frame.size.height) / 2, self.activityIndicatorView.frame.size.width, self.activityIndicatorView.frame.size.height);
     [self.activityIndicatorView startAnimating];
     
     [self addSubview:self.activityIndicatorView];
@@ -225,108 +227,129 @@ static const CGFloat kTSDistanceBetweenTitleAndIcon = 10.0;
 {
     [super layoutSubviews];
     
-    CGFloat currentHeight;
     CGFloat screenWidth = self.viewController.view.bounds.size.width;
     CGFloat textSpaceRight = self.button.frame.size.width + TSMessageViewPaddingX;
-    CGFloat textSpaceLeft = 2 * TSMessageViewPaddingX;
-    
-    if (self.iconImageView.image)
-        textSpaceLeft += self.iconImageView.image.size.width + self.iconImageView.frame.origin.x;
-    else if (self.activityIndicatorView)
-        textSpaceLeft += self.activityIndicatorView.frame.size.width + self.activityIndicatorView.frame.origin.x;
-    
-    // title
-    self.titleLabel.frame = CGRectMake(textSpaceLeft,
-                                       TSMessageViewPaddingY,
-                                       screenWidth - TSMessageViewPaddingX - textSpaceLeft - textSpaceRight,
-                                       0.0);
-    [self.titleLabel sizeToFit];
-    
-    // subtitle
-    if (self.contentLabel)
-    {
-        self.contentLabel.frame = CGRectMake(textSpaceLeft,
-                                             self.titleLabel.frame.origin.y + self.titleLabel.frame.size.height + kTSDistanceBetweenTitleAndSubtitle,
-                                             screenWidth - TSMessageViewPaddingX - textSpaceLeft - textSpaceRight,
-                                             0.0);
-        [self.contentLabel sizeToFit];
-        
-        currentHeight = self.contentLabel.frame.origin.y + self.contentLabel.frame.size.height;
-    }
-    else
-    {
-        currentHeight = self.titleLabel.frame.origin.y + self.titleLabel.frame.size.height;
-    }
-    
-    currentHeight += TSMessageViewPaddingY;
-    
-    // image
-    if (self.iconImageView)
-    {
-        CGFloat iconHeight = self.iconImageView.frame.origin.y + self.iconImageView.frame.size.height + TSMessageViewPaddingY;
-        CGFloat centerOffset = round((iconHeight - currentHeight) / 2.0);
+    CGFloat textSpaceLeft = TSMessageViewPaddingX;
+    CGFloat messageHeight;
 
-        // check if that makes the popup larger (height)
-        if (iconHeight > currentHeight)
-        {
-            currentHeight = iconHeight;
-            
-            // center the title & subtitle labels
-            self.titleLabel.center = CGPointMake(self.titleLabel.center.x, self.titleLabel.center.y + centerOffset);
-            self.contentLabel.center = CGPointMake(self.contentLabel.center.x, self.contentLabel.center.y + centerOffset);
-        }
-        else
-        {
-            self.iconImageView.center = CGPointMake([self.iconImageView center].x, round(currentHeight / 2.0));
-        }
-    }
-    
-    // activity indicator
+    // status bar style
     if (self.activityIndicatorView)
     {
-        CGFloat activityIndicatorHeight = self.activityIndicatorView.frame.origin.y + self.activityIndicatorView.frame.size.height + TSMessageViewPaddingY;
-        CGFloat centerOffset = round((activityIndicatorHeight - currentHeight) / 2.0);
+        messageHeight = 20.0;
         
-        // check if that makes the popup larger (height)
-        if (activityIndicatorHeight > currentHeight)
+        self.titleLabel.frame = CGRectMake(self.activityIndicatorView.frame.origin.x + self.activityIndicatorView.frame.size.width + 5,
+                                           1,
+                                           screenWidth - self.activityIndicatorView.frame.origin.x - self.activityIndicatorView.frame.size.width - TSMessageViewPaddingX - 5,
+                                           messageHeight - 1);
+        [self sizeToFitIfAppropriate:self.titleLabel];
+        
+        // vertically center title
+        self.titleLabel.frame = CGRectMake(self.titleLabel.frame.origin.x,
+                                           (20 - self.titleLabel.frame.size.height) / 2,
+                                           self.titleLabel.frame.size.width,
+                                           self.titleLabel.frame.size.height);
+        
+        // horizontally center activity indicator & title
+        CGFloat centerOffset = (screenWidth - self.titleLabel.frame.origin.x - self.titleLabel.frame.size.width - TSMessageViewPaddingX) / 2;
+        self.activityIndicatorView.frame = CGRectOffset(self.activityIndicatorView.frame, centerOffset, 0);
+        self.titleLabel.frame = CGRectOffset(self.titleLabel.frame, centerOffset, 0);
+    }
+    // navigation bar style
+    else
+    {
+        messageHeight = TSMessageViewHeight;
+
+        // there's no icon
+        if (!self.iconImageView.image)
         {
-            currentHeight = activityIndicatorHeight;
+            self.titleLabel.frame = CGRectMake(TSMessageViewPaddingX, TSMessageViewPaddingY, screenWidth-(TSMessageViewPaddingX*2), messageHeight-(TSMessageViewPaddingY*2));
+            [self sizeToFitIfAppropriate:self.titleLabel];
             
-            // center title & subtitle labels
-            self.titleLabel.center = CGPointMake(self.titleLabel.center.x, self.titleLabel.center.y + centerOffset);
-            self.contentLabel.center = CGPointMake(self.contentLabel.center.x, self.contentLabel.center.y + centerOffset);
+            // there's no subtitle
+            if (!self.subtitle)
+            {
+                // horizontally & vertically center title
+                self.titleLabel.frame = CGRectMake((screenWidth - self.titleLabel.frame.size.width) / 2,
+                                                   (messageHeight - self.titleLabel.frame.size.height) / 2,
+                                                   self.titleLabel.frame.size.width,
+                                                   self.titleLabel.frame.size.height);
+            }
+            else
+            {
+                self.contentLabel.frame = CGRectMake(TSMessageViewPaddingX,
+                                                     self.titleLabel.frame.origin.y + self.titleLabel.frame.size.height + kTSDistanceBetweenTitleAndSubtitle,
+                                                     screenWidth-(TSMessageViewPaddingX*2),
+                                                     messageHeight - kTSDistanceBetweenTitleAndSubtitle - self.titleLabel.frame.origin.y - self.titleLabel.frame.size.height - TSMessageViewPaddingY);
+                [self sizeToFitIfAppropriate:self.contentLabel];
+            
+                // horizontally center title & subtitle
+                self.contentLabel.frame = CGRectMake((screenWidth - self.contentLabel.frame.size.width) / 2,
+                                                     self.contentLabel.frame.origin.y,
+                                                     self.contentLabel.frame.size.width,
+                                                     self.contentLabel.frame.size.height);
+                self.titleLabel.frame = CGRectMake((screenWidth - self.titleLabel.frame.size.width) / 2,
+                                                   self.titleLabel.frame.origin.y,
+                                                   self.titleLabel.frame.size.width,
+                                                   self.titleLabel.frame.size.height);
+                
+                // vertically center title & subtitle
+                CGFloat centerOffset = (messageHeight - (self.contentLabel.frame.origin.y + self.contentLabel.frame.size.height + TSMessageViewPaddingY)) / 2;
+                self.titleLabel.frame = CGRectOffset(self.titleLabel.frame, 0, centerOffset);
+                self.contentLabel.frame = CGRectOffset(self.contentLabel.frame, 0, centerOffset);
+            }
         }
+        // there's an icon
         else
         {
-            self.activityIndicatorView.center = CGPointMake(self.activityIndicatorView.center.x, round(currentHeight / 2.0));
+            textSpaceLeft += self.iconImageView.image.size.width + self.iconImageView.frame.origin.x;
+
+            self.titleLabel.frame = CGRectMake(textSpaceLeft, TSMessageViewPaddingY, screenWidth - textSpaceLeft - textSpaceRight - self.titleLabel.frame.size.width, messageHeight - (TSMessageViewPaddingY * 2));
+            [self sizeToFitIfAppropriate:self.titleLabel];
+
+            if (!self.subtitle)
+            {
+                // vertically center title
+                self.titleLabel.frame = CGRectMake(textSpaceLeft,
+                                                   (messageHeight - self.titleLabel.frame.size.height) / 2,
+                                                   self.titleLabel.frame.size.width,
+                                                   self.titleLabel.frame.size.height);
+            }
+            else
+            {
+                self.contentLabel.frame = CGRectMake(textSpaceLeft,
+                                                     self.titleLabel.frame.origin.y + self.titleLabel.frame.size.height + kTSDistanceBetweenTitleAndSubtitle,
+                                                     screenWidth - textSpaceLeft - textSpaceRight - self.contentLabel.frame.size.width,
+                                                     messageHeight - kTSDistanceBetweenTitleAndSubtitle - self.titleLabel.frame.origin.y - self.titleLabel.frame.size.height - TSMessageViewPaddingY);
+                [self sizeToFitIfAppropriate:self.contentLabel];
+
+                // vertically center title & subtitle
+                CGFloat centerOffset = (messageHeight - (self.contentLabel.frame.origin.y + self.contentLabel.frame.size.height + TSMessageViewPaddingY)) / 2;
+                self.titleLabel.frame = CGRectOffset(self.titleLabel.frame, 0, centerOffset);
+                self.contentLabel.frame = CGRectOffset(self.contentLabel.frame, 0, centerOffset);
+            }
         }
     }
     
-    self.frame = CGRectMake(0.0, self.frame.origin.y, self.frame.size.width, currentHeight);
+    self.frame = CGRectMake(0, 0, screenWidth, messageHeight);
     
-    // button
-    if (self.button)
-    {
-        self.button.center = CGPointMake([self.button center].x, round(currentHeight / 2.0));
+//    // button
+//    if (self.button)
+//    {
+//        self.button.center = CGPointMake([self.button center].x, round(currentHeight / 2.0));
+//    
+//        self.button.frame = CGRectMake(self.frame.size.width - textSpaceRight,
+//                                       round((self.frame.size.height / 2.0) - self.button.frame.size.height / 2.0),
+//                                       self.button.frame.size.width,
+//                                       self.button.frame.size.height);
+//    }
     
-        self.button.frame = CGRectMake(self.frame.size.width - textSpaceRight,
-                                       round((self.frame.size.height / 2.0) - self.button.frame.size.height / 2.0),
-                                       self.button.frame.size.width,
-                                       self.button.frame.size.height);
-    }
-    
-    
-    CGRect backgroundFrame = CGRectMake(self.backgroundBlurView.frame.origin.x,
-                                        self.backgroundBlurView.frame.origin.y,
-                                        screenWidth,
-                                        currentHeight);
+    CGRect backgroundFrame = CGRectMake(0, 0, screenWidth, messageHeight);
     
     // increase frame of background view because of the spring animation
     if (self.position == TSMessagePositionTop)
-    {
-        CGFloat topOffset = -30.f;
-        backgroundFrame = UIEdgeInsetsInsetRect(backgroundFrame, UIEdgeInsetsMake(topOffset, 0.f, topOffset, 0.f));
-    }
+        backgroundFrame = UIEdgeInsetsInsetRect(backgroundFrame, UIEdgeInsetsMake(-30.f, 0.f, 0.f, 0.f));
+    else
+        backgroundFrame = UIEdgeInsetsInsetRect(backgroundFrame, UIEdgeInsetsMake(0.f, 0.f, -30.f, 0.f));
     
     self.backgroundBlurView.frame = backgroundFrame;
 }
@@ -435,6 +458,16 @@ static const CGFloat kTSDistanceBetweenTitleAndIcon = 10.0;
 - (NSString *)subtitle
 {
     return self.contentLabel.text;
+}
+
+/** Only performs a sizeToFit if the new size is not bigger than the current frame size */
+- (void)sizeToFitIfAppropriate:(UIView *)view
+{
+    CGSize proposedSize = [view sizeThatFits:view.frame.size];
+    if (proposedSize.height <= view.frame.size.height && proposedSize.width <= view.frame.size.width)
+    {
+        [view sizeToFit];
+    }
 }
 
 @end

@@ -20,6 +20,7 @@
 		CA0B971E1719CD6800E06F84 /* MainStoryboard.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = CA0B971C1719CD6800E06F84 /* MainStoryboard.storyboard */; };
 		CA0B97281719CD6800E06F84 /* TSDemoViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = CA0B97271719CD6800E06F84 /* TSDemoViewController.m */; };
 		CAA3C9E817C3CD180085E06E /* AlternativeDesign.json in Resources */ = {isa = PBXBuildFile; fileRef = CAA3C9E717C3CD180085E06E /* AlternativeDesign.json */; };
+		E4407EC51959DACC00438D14 /* MessageIcon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = E4407EC41959DACC00438D14 /* MessageIcon@2x.png */; };
 		E4A121FD19571ACF0092614E /* AvatarPlaceholderLarge@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = E4A121FC19571ACF0092614E /* AvatarPlaceholderLarge@2x.png */; };
 /* End PBXBuildFile section */
 
@@ -43,6 +44,7 @@
 		CA0B97261719CD6800E06F84 /* TSDemoViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TSDemoViewController.h; sourceTree = "<group>"; };
 		CA0B97271719CD6800E06F84 /* TSDemoViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TSDemoViewController.m; sourceTree = "<group>"; };
 		CAA3C9E717C3CD180085E06E /* AlternativeDesign.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = AlternativeDesign.json; sourceTree = "<group>"; };
+		E4407EC41959DACC00438D14 /* MessageIcon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "MessageIcon@2x.png"; sourceTree = "<group>"; };
 		E4A121FC19571ACF0092614E /* AvatarPlaceholderLarge@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "AvatarPlaceholderLarge@2x.png"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -95,6 +97,7 @@
 			children = (
 				CAA3C9E717C3CD180085E06E /* AlternativeDesign.json */,
 				E4A121FC19571ACF0092614E /* AvatarPlaceholderLarge@2x.png */,
+				E4407EC41959DACC00438D14 /* MessageIcon@2x.png */,
 				CA0B97131719CD6800E06F84 /* TSAppDelegate.h */,
 				CA0B97141719CD6800E06F84 /* TSAppDelegate.m */,
 				CA0B971C1719CD6800E06F84 /* MainStoryboard.storyboard */,
@@ -173,6 +176,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CA0B970F1719CD6800E06F84 /* InfoPlist.strings in Resources */,
+				E4407EC51959DACC00438D14 /* MessageIcon@2x.png in Resources */,
 				CA0B97171719CD6800E06F84 /* Default.png in Resources */,
 				CA0B97191719CD6800E06F84 /* Default@2x.png in Resources */,
 				CA0B971B1719CD6800E06F84 /* Default-568h@2x.png in Resources */,

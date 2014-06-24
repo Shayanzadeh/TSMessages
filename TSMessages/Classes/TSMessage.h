@@ -21,11 +21,6 @@ typedef NS_ENUM(NSInteger, TSMessageType) {
     TSMessageTypeProgress
 };
 
-typedef NS_ENUM(NSInteger, TSMessageStyle) {
-    TSMessageStyleStatusBar = 0,
-    TSMessageStyleNavigationBar
-};
-
 typedef NS_ENUM(NSInteger, TSMessagePosition) {
     TSMessagePositionTop = 0,
     TSMessagePositionBottom

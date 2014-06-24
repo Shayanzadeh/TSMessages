@@ -9,15 +9,15 @@
         "buttonTitleShadowOffsetX": 0,
         "buttonTitleShadowOffsetY": -1,
         "contentFontName": "AvenirNext-Regular",
-        "contentFontSize": 12,
+        "contentFontSize": 11,
         "contentTextColor": "#ecf0f1",
-        "imageName": "MessageBackgroundSuccessIcon.png",
+        "imageName": "MessageIcon.png",
         "shadowColor": "#27ae60",
         "shadowOffsetX": 0,
         "shadowOffsetY": -1,
         "textColor": "#ecf0f1",
         "titleFontName": "AvenirNext-Medium",
-        "titleFontSize": 14
+        "titleFontSize": 13
     },
     "message": {
         "backgroundColor": "#95a5a6",
@@ -29,7 +29,7 @@
         "buttonTitleShadowOffsetX": 0,
         "buttonTitleShadowOffsetY": -1,
         "contentFontName": "AvenirNext-Regular",
-        "contentFontSize": 12,
+        "contentFontSize": 11,
         "contentTextColor": "#2c3e50",
         "imageName": "",
         "shadowColor": "#95a5a6",
@@ -37,7 +37,7 @@
         "shadowOffsetY": -1,
         "textColor": "#2c3e50",
         "titleFontName": "AvenirNext-Medium",
-        "titleFontSize": 14
+        "titleFontSize": 13
     },
     "warning": {
         "backgroundColor": "#f1c40f",
@@ -49,15 +49,15 @@
         "buttonTitleShadowOffsetX": 0,
         "buttonTitleShadowOffsetY": -1,
         "contentFontName": "AvenirNext-Regular",
-        "contentFontSize": 12,
+        "contentFontSize": 11,
         "contentTextColor": "#2c3e50",
-        "imageName": "MessageBackgroundWarningIcon.png",
+        "imageName": "MessageIcon.png",
         "shadowColor": "#f1c40f",
         "shadowOffsetX": 0,
         "shadowOffsetY": -1,
         "textColor": "#2c3e50",
         "titleFontName": "AvenirNext-Medium",
-        "titleFontSize": 14
+        "titleFontSize": 13
     },
     "error": {
         "backgroundColor": "#c0392b",
@@ -69,18 +69,18 @@
         "buttonTitleShadowOffsetX": 0,
         "buttonTitleShadowOffsetY": -1,
         "contentFontName": "AvenirNext-Regular",
-        "contentFontSize": 12,
+        "contentFontSize": 11,
         "contentTextColor": "#ecf0f1",
-        "imageName": "MessageBackgroundErrorIcon.png",
+        "imageName": "MessageIcon.png",
         "shadowColor": "#c0392b",
         "shadowOffsetX": 0,
         "shadowOffsetY": -1,
         "textColor": "#ecf0f1",
         "titleFontName": "AvenirNext-Medium",
-        "titleFontSize": 14
+        "titleFontSize": 13
     },
     "progress": {
-        "backgroundColor": "#393939",
+        "backgroundColor": "#66B0FF",
         "borderColor": "#700000",
         "borderHeight": 1,
         "buttonBackgroundImageName": "MessageButtonBackground.png",
@@ -89,14 +89,14 @@
         "buttonTitleShadowOffsetX": 0,
         "buttonTitleShadowOffsetY": -1,
         "contentFontName": "AvenirNext-Regular",
-        "contentFontSize": 12,
+        "contentFontSize": 11,
         "contentTextColor": "#ecf0f1",
         "imageName": "",
-        "shadowColor": "#393939",
+        "shadowColor": "#66B0FF",
         "shadowOffsetX": 0,
         "shadowOffsetY": -1,
         "textColor": "#ecf0f1",
-        "titleFontName": "AvenirNext-Medium",
-        "titleFontSize": 14
+        "titleFontName": "AvenirNext-DemiBold",
+        "titleFontSize": 11
     }
 }

@@ -214,7 +214,7 @@
 
 - (IBAction)didTapProgress:(id)sender
 {
-    [TSMessage displayMessageWithTitle:NSLocalizedString(@"Loging in", nil)
+    [TSMessage displayMessageWithTitle:NSLocalizedString(@"Purchasing ticket...", nil)
                               subtitle:nil
                                   type:TSMessageTypeProgress];
 }
