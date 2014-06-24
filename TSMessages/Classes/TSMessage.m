@@ -15,8 +15,36 @@
 #define kTSMessageExtraDisplayTimePerPixel 0.04
 #define kTSDesignFileName @"TSMessagesDefaultDesign.json"
 
+#pragma mark - TSWindowContainer -
+
+@implementation TSWindowContainer
+
+- (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event
+{
+    TSMessageView *message = (TSMessageView *)[TSMessage sharedMessage].messages.firstObject;
+    CGFloat messageHeight = message.backgroundBlurView.frame.size.height;
+    
+    if (message.position == TSMessagePositionTop)
+    {
+        if (point.y >= 0 && point.y <= messageHeight)
+            return [super hitTest:point withEvent:event];
+    }
+    else
+    {
+        CGFloat screenHeight = [UIScreen mainScreen].bounds.size.height;
+        if (point.y <= screenHeight && point.y >= screenHeight - messageHeight)
+            return [super hitTest:point withEvent:event];
+    }
+    
+    return nil;
+}
+
+@end
+
+#pragma mark - TSMessage -
+
 @interface TSMessage ()
-@property (nonatomic, strong) NSMutableArray *messages;
+@property (nonatomic, strong) TSWindowContainer *messageWindow;
 @end
 
 @implementation TSMessage
@@ -40,6 +68,13 @@ __weak static UIViewController *_defaultViewController;
     if ((self = [super init]))
     {
         _messages = [[NSMutableArray alloc] init];
+        
+        _messageWindow = [[TSWindowContainer alloc] initWithFrame:[UIScreen mainScreen].bounds];
+        _messageWindow.backgroundColor = [UIColor clearColor];
+        _messageWindow.userInteractionEnabled = YES;
+        _messageWindow.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        _messageWindow.windowLevel = UIWindowLevelStatusBar;
+        _messageWindow.rootViewController = [[UIViewController alloc] init];
     }
     
     return self;
@@ -49,14 +84,14 @@ __weak static UIViewController *_defaultViewController;
 
 + (TSMessageView *)messageWithTitle:(NSString *)title subtitle:(NSString *)subtitle type:(TSMessageType)type
 {
-    return [self messageWithTitle:title subtitle:subtitle image:nil type:type inViewController:self.defaultViewController];
+    return [self messageWithTitle:title subtitle:subtitle image:nil type:type];
 }
 
-+ (TSMessageView *)messageWithTitle:(NSString *)title subtitle:(NSString *)subtitle image:(UIImage *)image type:(TSMessageType)type inViewController:(UIViewController *)viewController
++ (TSMessageView *)messageWithTitle:(NSString *)title subtitle:(NSString *)subtitle image:(UIImage *)image type:(TSMessageType)type
 {
     TSMessageView *view = [[TSMessageView alloc] initWithTitle:title subtitle:subtitle image:image type:type];
     
-    view.viewController = viewController;
+    view.viewController = [TSMessage sharedMessage].messageWindow.rootViewController;
     
     return view;
 }
@@ -65,12 +100,12 @@ __weak static UIViewController *_defaultViewController;
 
 + (TSMessageView *)displayMessageWithTitle:(NSString *)title subtitle:(NSString *)subtitle type:(TSMessageType)type
 {
-    return [self displayMessageWithTitle:title subtitle:subtitle image:nil type:type inViewController:self.defaultViewController];
+    return [self displayMessageWithTitle:title subtitle:subtitle image:nil type:type];
 }
 
-+ (TSMessageView *)displayMessageWithTitle:(NSString *)title subtitle:(NSString *)subtitle image:(UIImage *)image type:(TSMessageType)type inViewController:(UIViewController *)viewController
++ (TSMessageView *)displayMessageWithTitle:(NSString *)title subtitle:(NSString *)subtitle image:(UIImage *)image type:(TSMessageType)type
 {
-    TSMessageView *view = [self messageWithTitle:title subtitle:subtitle image:image type:type inViewController:viewController];
+    TSMessageView *view = [self messageWithTitle:title subtitle:subtitle image:image type:type];
     
     [self displayOrEnqueueMessage:view];
     
@@ -204,25 +239,6 @@ __weak static UIViewController *_defaultViewController;
     return design;
 }
 
-#pragma mark - Default view controller
-
-+ (UIViewController *)defaultViewController
-{
-    __strong UIViewController *defaultViewController = _defaultViewController;
-    
-    if (!defaultViewController)
-    {
-        defaultViewController = [UIApplication sharedApplication].keyWindow.rootViewController;
-    }
-    
-    return defaultViewController;
-}
-
-+ (void)setDefaultViewController:(UIViewController *)defaultViewController
-{
-    _defaultViewController = defaultViewController;
-}
-
 #pragma mark - Internals
 
 - (TSMessageView *)currentMessage
@@ -243,51 +259,10 @@ __weak static UIViewController *_defaultViewController;
 {
     [messageView prepareForDisplay];
     
-    // hide status bar
-    CGFloat statusBarHeight = [UIApplication sharedApplication].statusBarFrame.size.height;
-    [[UIApplication sharedApplication] setStatusBarHidden:YES withAnimation:UIStatusBarAnimationNone];
-
-    // add view
-    
-    // check if view is a UINavigationController or a child of one
-    if ([messageView.viewController isKindOfClass:[UINavigationController class]] || messageView.viewController.navigationController)
-    {
-        // find root UINavigationController for view
-        UINavigationController *navController = (UINavigationController *)(messageView.viewController.navigationController ?
-                                                                           messageView.viewController.navigationController : messageView.viewController);
-        // prevent navigation bar from moving
-        navController.navigationBar.frame = CGRectMake(navController.navigationBar.frame.origin.x,
-                                                       navController.navigationBar.frame.origin.y,
-                                                       navController.navigationBar.frame.size.width,
-                                                       navController.navigationBar.frame.size.height + statusBarHeight);
-        
-        [navController.view insertSubview:messageView aboveSubview:navController.navigationBar];
-    }
-    // check if view is a UITabBarController
-    else if ([messageView.viewController isKindOfClass:[UITabBarController class]])
-    {
-        UITabBarController *tabBarController = (UITabBarController *)messageView.viewController;
-        
-        // iterate through it's viewControllers
-        for (UIViewController *vc in tabBarController.viewControllers)
-        {
-            // if viewController is a UINavigationController, prevent navigation bar from moving
-            if ([vc isKindOfClass:[UINavigationController class]])
-            {
-                UINavigationController *navController = (UINavigationController *)vc;
-                navController.navigationBar.frame = CGRectMake(navController.navigationBar.frame.origin.x,
-                                                               navController.navigationBar.frame.origin.y,
-                                                               navController.navigationBar.frame.size.width,
-                                                               navController.navigationBar.frame.size.height + statusBarHeight);
-            }
-        }
-        
-        [tabBarController.view addSubview:messageView];
-    }
-    else
-    {
-        [messageView.viewController.view addSubview:messageView];
-    }
+    // add view to window and show window
+    [self.messageWindow.rootViewController.view addSubview:messageView];
+//    [self.messageWindow.rootViewController.view bringSubviewToFront:messageView];
+    [self.messageWindow setHidden:NO];
 
     // animate
     [UIView animateWithDuration:kTSMessageAnimationDuration + 0.1
@@ -339,11 +314,8 @@ __weak static UIViewController *_defaultViewController;
     [UIView animateWithDuration:kTSMessageAnimationDuration animations:^{
          messageView.center = dismissToPoint;
      } completion:^(BOOL finished) {
-         // show status bar if no more messages left to display
-         if (self.messages.count == 1)
-             [[UIApplication sharedApplication] setStatusBarHidden:NO withAnimation:UIStatusBarAnimationNone];
-
          [messageView removeFromSuperview];
+         [self.messageWindow setHidden:YES];
 
          if (completion) completion();
      }];

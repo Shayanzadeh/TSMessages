@@ -28,8 +28,6 @@
 {
     [super viewDidLoad];
     
-    [TSMessage setDefaultViewController:self];
-    
     [self.navigationController.navigationBar setTranslucent:YES];
 }
 
@@ -120,7 +118,6 @@
                                              subtitle:NSLocalizedString(@"Stays here until it gets dismissed", nil)
                                                  type:TSMessageTypeDefault];
     
-    view.delegate = self;
     view.userDismissEnabled = NO;
     view.position = TSMessagePositionBottom;
     
@@ -143,7 +140,6 @@
                                                     subtitle:NSLocalizedString(@"Define this via a delegation method", nil)
                                                         type:TSMessageTypeDefault];
     
-    messageView.delegate = self;
     messageView.position = TSMessagePositionBottom;
     
     [messageView displayOrEnqueue];
@@ -156,8 +152,7 @@
     TSMessageView *messageView = [TSMessage messageWithTitle:NSLocalizedString(@"Custom image", nil)
                                                     subtitle:NSLocalizedString(@"This uses an image you can define", nil)
                                                        image:image
-                                                        type:TSMessageTypeDefault
-                                            inViewController:self];
+                                                        type:TSMessageTypeDefault];
     
     [messageView displayOrEnqueue];
 }

@@ -10,12 +10,20 @@
 
 @class TSMessageView;
 
+@interface TSWindowContainer : UIWindow
+@end
+
 typedef NS_ENUM(NSInteger, TSMessageType) {
     TSMessageTypeDefault = 0,
     TSMessageTypeSuccess,
     TSMessageTypeWarning,
     TSMessageTypeError,
     TSMessageTypeProgress
+};
+
+typedef NS_ENUM(NSInteger, TSMessageStyle) {
+    TSMessageStyleStatusBar = 0,
+    TSMessageStyleNavigationBar
 };
 
 typedef NS_ENUM(NSInteger, TSMessagePosition) {
@@ -32,9 +40,9 @@ typedef void (^TSMessageCallback)(TSMessageView *messageView);
 
 @interface TSMessage : NSObject
 
-+ (instancetype)sharedMessage;
+@property (nonatomic, strong) NSMutableArray *messages;
 
-+ (UIViewController *)defaultViewController;
++ (instancetype)sharedMessage;
 
 /** Returns a message view for further customization
 
@@ -66,15 +74,13 @@ typedef void (^TSMessageCallback)(TSMessageView *messageView);
  @param subtitle The message that is displayed underneath the title (optional)
  @param image A custom icon image (optional)
  @param type The message type (Default, Warning, Error, Success)
- @param viewController The view controller to display the message in
 
  @return The message view
  */
 + (TSMessageView *)messageWithTitle:(NSString *)title
                            subtitle:(NSString *)subtitle
                               image:(UIImage *)image
-                               type:(TSMessageType)type
-                   inViewController:(UIViewController *)viewController;
+                               type:(TSMessageType)type;
 
 /** Displays a message right away in a specific view controller and returns
  the message view
@@ -83,18 +89,13 @@ typedef void (^TSMessageCallback)(TSMessageView *messageView);
  @param subtitle The text that is displayed underneath the title
  @param image A custom icon image (optional)
  @param type The message type (Default, Warning, Error, Success)
- @param viewController The view controller to display the message in
 
  @return The message view
  */
 + (TSMessageView *)displayMessageWithTitle:(NSString *)title
                                   subtitle:(NSString *)subtitle
                                      image:(UIImage *)image
-                                      type:(TSMessageType)type
-                          inViewController:(UIViewController *)viewController;
-
-/** Use this method to set a default view controller to display the messages in */
-+ (void)setDefaultViewController:(UIViewController *)defaultViewController;
+                                      type:(TSMessageType)type;
 
 /** Use this method to use custom designs for your messages. */
 + (void)addCustomDesignFromFileWithName:(NSString *)fileName;

@@ -6,18 +6,18 @@
 //  Copyright (c) 2012 Felix Krause. All rights reserved.
 //
 
-#import "TSMessageView.h"
 #import "HexColor.h"
-#import "TSBlurView.h"
 #import "TSMessage.h"
+#import "TSMessageView.h"
 #import "TSMessage+Private.h"
 #import "TSMessageView+Private.h"
 
-#define TSMessageViewPadding 15.0
-#define TSMessageViewPaddingY 10.0
+#define TSMessageViewPaddingX 10.0
+#define TSMessageViewPaddingY 7.5
 static const CGFloat kTSDistanceBetweenTitleAndSubtitle = 1.0;
+static const CGFloat kTSDistanceBetweenTitleAndIcon = 10.0;
 
-@interface TSMessageView () <UIGestureRecognizerDelegate>
+@interface TSMessageView ()
 @property (nonatomic) NSDictionary *config;
 @property (nonatomic) UILabel *titleLabel;
 @property (nonatomic) UILabel *contentLabel;
@@ -26,7 +26,6 @@ static const CGFloat kTSDistanceBetweenTitleAndSubtitle = 1.0;
 @property (nonatomic) UIActivityIndicatorView *activityIndicatorView;
 @property (nonatomic) UITapGestureRecognizer *tapRecognizer;
 @property (nonatomic) UISwipeGestureRecognizer *swipeRecognizer;
-@property (nonatomic) TSBlurView *backgroundBlurView;
 @property (nonatomic, copy) TSMessageCallback buttonCallback;
 @property (nonatomic, getter=isMessageFullyDisplayed) BOOL messageFullyDisplayed;
 @end
@@ -35,7 +34,7 @@ static const CGFloat kTSDistanceBetweenTitleAndSubtitle = 1.0;
 
 - (id)initWithTitle:(NSString *)title subtitle:(NSString *)subtitle image:(UIImage *)image type:(TSMessageType)type
 {
-    if ((self = [self init]))
+    if ((self = [super init]))
     {
         self.userDismissEnabled = type == TSMessageTypeProgress ? NO : YES;
         self.duration = type == TSMessageTypeProgress ? TSMessageDurationEndless : TSMessageDurationAutomatic;
@@ -141,7 +140,7 @@ static const CGFloat kTSDistanceBetweenTitleAndSubtitle = 1.0;
     if (!image && self.config[@"imageName"] != [NSNull null] && [self.config[@"imageName"] length]) image = [UIImage imageNamed:self.config[@"imageName"]];
     
     self.iconImageView = [[UIImageView alloc] initWithImage:image];
-    self.iconImageView.frame = CGRectMake(TSMessageViewPadding * 2, TSMessageViewPaddingY, image.size.width, image.size.height);
+    self.iconImageView.frame = CGRectMake(TSMessageViewPaddingX, TSMessageViewPaddingY, image.size.width, image.size.height);
     
     [self addSubview:self.iconImageView];
 }
@@ -163,7 +162,7 @@ static const CGFloat kTSDistanceBetweenTitleAndSubtitle = 1.0;
     
     self.activityIndicatorView = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhite];
     self.activityIndicatorView.color = [UIColor colorWithHexString:self.config[@"textColor"] alpha:1];
-    self.activityIndicatorView.frame = CGRectMake(TSMessageViewPadding * 2, TSMessageViewPaddingY, self.activityIndicatorView.frame.size.width, self.activityIndicatorView.frame.size.height);
+    self.activityIndicatorView.frame = CGRectMake(TSMessageViewPaddingX, TSMessageViewPaddingY, self.activityIndicatorView.frame.size.width, self.activityIndicatorView.frame.size.height);
     [self.activityIndicatorView startAnimating];
     
     [self addSubview:self.activityIndicatorView];
@@ -197,7 +196,7 @@ static const CGFloat kTSDistanceBetweenTitleAndSubtitle = 1.0;
     [self.button addTarget:self action:@selector(handleButtonTap:) forControlEvents:UIControlEventTouchUpInside];
     [self.button sizeToFit];
     
-    self.button.frame = CGRectMake(self.viewController.view.bounds.size.width - TSMessageViewPadding - self.button.frame.size.width, 0, self.button.frame.size.width, 31);
+    self.button.frame = CGRectMake(self.viewController.view.bounds.size.width - TSMessageViewPaddingX - self.button.frame.size.width, 0, self.button.frame.size.width, 31);
     
     [self addSubview:self.button];
 }
@@ -228,17 +227,18 @@ static const CGFloat kTSDistanceBetweenTitleAndSubtitle = 1.0;
     
     CGFloat currentHeight;
     CGFloat screenWidth = self.viewController.view.bounds.size.width;
-    CGFloat textSpaceRight = self.button.frame.size.width + TSMessageViewPadding;
-    CGFloat textSpaceLeft = 2 * TSMessageViewPadding;
-    UIImage *image = self.iconImageView.image;
+    CGFloat textSpaceRight = self.button.frame.size.width + TSMessageViewPaddingX;
+    CGFloat textSpaceLeft = 2 * TSMessageViewPaddingX;
     
-    if (image) textSpaceLeft += image.size.width + 2 * TSMessageViewPadding;
-    else if (self.activityIndicatorView) textSpaceLeft += self.activityIndicatorView.frame.size.width + 2 * TSMessageViewPadding;
+    if (self.iconImageView.image)
+        textSpaceLeft += self.iconImageView.image.size.width + self.iconImageView.frame.origin.x;
+    else if (self.activityIndicatorView)
+        textSpaceLeft += self.activityIndicatorView.frame.size.width + self.activityIndicatorView.frame.origin.x;
     
     // title
     self.titleLabel.frame = CGRectMake(textSpaceLeft,
                                        TSMessageViewPaddingY,
-                                       screenWidth - TSMessageViewPadding - textSpaceLeft - textSpaceRight,
+                                       screenWidth - TSMessageViewPaddingX - textSpaceLeft - textSpaceRight,
                                        0.0);
     [self.titleLabel sizeToFit];
     
@@ -247,7 +247,7 @@ static const CGFloat kTSDistanceBetweenTitleAndSubtitle = 1.0;
     {
         self.contentLabel.frame = CGRectMake(textSpaceLeft,
                                              self.titleLabel.frame.origin.y + self.titleLabel.frame.size.height + kTSDistanceBetweenTitleAndSubtitle,
-                                             screenWidth - TSMessageViewPadding - textSpaceLeft - textSpaceRight,
+                                             screenWidth - TSMessageViewPaddingX - textSpaceLeft - textSpaceRight,
                                              0.0);
         [self.contentLabel sizeToFit];
         
@@ -352,63 +352,10 @@ static const CGFloat kTSDistanceBetweenTitleAndSubtitle = 1.0;
     CGFloat y;
     CGFloat heightOffset = CGRectGetHeight(self.frame) / 2;
     
-    if ([self.delegate respondsToSelector:@selector(customMessageOffsetForPosition:inViewController:)])
-    {
-        CGFloat offset = [self.delegate customMessageOffsetForPosition:self.position inViewController:self.viewController];
-        
-        if (self.position == TSMessagePositionTop)
-        {
-            y = offset + heightOffset;
-        }
-        else
-        {
-            y = self.viewController.view.bounds.size.height - (offset + heightOffset);
-        }
-    }
+    if (self.position == TSMessagePositionTop)
+        y = heightOffset;
     else
-    {
-        BOOL isPortrait = UIInterfaceOrientationIsPortrait([[UIApplication sharedApplication] statusBarOrientation]);
-        CGSize statusBarSize = [UIApplication sharedApplication].statusBarFrame.size;
-        CGFloat offset = isPortrait ? statusBarSize.height : statusBarSize.width;
-        
-        if ([self.viewController isKindOfClass:[UINavigationController class]] || [self.viewController.parentViewController isKindOfClass:[UINavigationController class]])
-        {
-            UIViewController *viewController = self.viewController;
-            UINavigationController *navigationController = (UINavigationController *)([viewController isKindOfClass:[UINavigationController class]] ? viewController : viewController.parentViewController);
-            
-            viewController = [[navigationController childViewControllers] firstObject];
-            
-            BOOL isViewIsUnderStatusBar = !viewController.prefersStatusBarHidden;
-            
-            if (!isViewIsUnderStatusBar && navigationController.parentViewController == nil)
-            {
-                // strange but true
-                isViewIsUnderStatusBar = ![self isNavigationBarInNavigationControllerHidden:navigationController];
-            }
-            
-            // if navbar is visible
-            if (![self isNavigationBarInNavigationControllerHidden:navigationController])
-            {
-            }
-            else if (isViewIsUnderStatusBar)
-            {
-            }
-        }
-        
-        if (self.position == TSMessagePositionTop)
-        {
-            y = offset + heightOffset;
-        }
-        else
-        {
-            y = self.viewController.view.bounds.size.height - heightOffset;
-            
-            if (!self.viewController.navigationController.isToolbarHidden)
-            {
-                y -= CGRectGetHeight(self.viewController.navigationController.toolbar.bounds);
-            }
-        }
-    }
+        y = self.viewController.view.bounds.size.height - heightOffset;
     
     CGPoint center = CGPointMake(self.center.x, y);
     
@@ -488,24 +435,6 @@ static const CGFloat kTSDistanceBetweenTitleAndSubtitle = 1.0;
 - (NSString *)subtitle
 {
     return self.contentLabel.text;
-}
-
-/** Indicates whether the current navigationBar is hidden by isNavigationBarHidden on the
- UINavigationController or isHidden on the navigationBar of the UINavigationController */
-- (BOOL)isNavigationBarInNavigationControllerHidden:(UINavigationController *)navController
-{
-    if (navController.isNavigationBarHidden)
-    {
-        return YES;
-    }
-    else if (navController.navigationBar.isHidden)
-    {
-        return YES;
-    }
-    else
-    {
-        return NO;
-    }
 }
 
 @end

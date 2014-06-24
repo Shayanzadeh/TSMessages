@@ -6,29 +6,23 @@
 //  Copyright (c) 2012 Felix Krause. All rights reserved.
 //
 
-#import <UIKit/UIKit.h>
 #import "TSMessage.h"
+#import "TSBlurView.h"
+#import <UIKit/UIKit.h>
 
-#define TSMessageViewAlpha 0.95
+@interface TSMessageView : UIView <UIGestureRecognizerDelegate>
 
-@protocol TSMessageViewProtocol<NSObject>
-@optional
-/** Implement this method to pass a custom value for positioning the message view */
-- (CGFloat)customMessageOffsetForPosition:(TSMessagePosition)position inViewController:(UIViewController *)viewController;
-@end
-
-@interface TSMessageView : UIView
 /** The view controller this message is displayed in */
 @property (nonatomic, weak) UIViewController *viewController;
 
 /** The duration of the displayed message. If it is 0.0, it will automatically be calculated */
 @property (nonatomic, assign) CGFloat duration;
 
+/** Use it's frame to find height of displayed message */
+@property (nonatomic) TSBlurView *backgroundBlurView;
+
 /** The position of the message (top or bottom) */
 @property (nonatomic, assign) TSMessagePosition position;
-
-/** By setting this delegate it's possible to set a custom offset for the message view */
-@property (nonatomic, assign) id <TSMessageViewProtocol> delegate;
 
 /** The callback that should be invoked, when the user taps the message */
 @property (nonatomic, copy) TSMessageCallback tapCallback;
