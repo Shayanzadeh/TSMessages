@@ -53,8 +53,8 @@
                                     <action selector="didTapMessage:" destination="3" eventType="touchUpInside" id="4aH-Yh-ckc"/>
                                 </connections>
                             </button>
-                            <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="hxl-lo-RFJ">
-                                <rect key="frame" x="120" y="215" width="80" height="30"/>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="hxl-lo-RFJ">
+                                <rect key="frame" x="120" y="206" width="80" height="30"/>
                                 <state key="normal" title="Success">
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
@@ -95,7 +95,7 @@
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <connections>
-                                    <segue destination="VWt-K2-2qD" kind="push" id="KZ1-sa-IWJ"/>
+                                    <action selector="didTapPermanent:" destination="3" eventType="touchUpInside" id="eSw-wX-k7Y"/>
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="36v-bR-L60">
@@ -151,11 +151,11 @@
                                 <constraints>
                                     <constraint firstAttribute="width" constant="175" id="3ZV-Cg-vUT"/>
                                 </constraints>
-                                <state key="normal" title="Custom position">
+                                <state key="normal" title="Endless">
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <connections>
-                                    <action selector="didTapCustomPosition:" destination="3" eventType="touchUpInside" id="6ES-qM-Htw"/>
+                                    <action selector="didTapEndless:" destination="3" eventType="touchUpInside" id="7Yw-oa-ODv"/>
                                 </connections>
                             </button>
                             <view contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="9uh-lk-Mza">
@@ -242,25 +242,6 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="12" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="761" y="146"/>
-        </scene>
-        <!--View Controller-->
-        <scene sceneID="Kqr-0t-XDq">
-            <objects>
-                <viewController id="VWt-K2-2qD" sceneMemberID="viewController">
-                    <layoutGuides>
-                        <viewControllerLayoutGuide type="top" id="lBL-M6-pg6"/>
-                        <viewControllerLayoutGuide type="bottom" id="2bT-au-zRv"/>
-                    </layoutGuides>
-                    <view key="view" contentMode="scaleToFill" id="xMV-tH-qev">
-                        <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
-                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
-                    </view>
-                    <navigationItem key="navigationItem" id="SvQ-s2-cNo"/>
-                </viewController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="k5Z-no-HC8" userLabel="First Responder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="1219" y="146"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="Qju-rT-u26">
