@@ -162,26 +162,21 @@ __weak static UIViewController *_defaultViewController;
     }
 
     if (!progressMessage) return NO;
-    
+
     [sharedInstance dismissMessage:progressMessage completion:^{
         if (sharedInstance.messages.count)
         {
-            [sharedInstance.messages removeObjectAtIndex:index];
+            [sharedInstance.messages removeObjectIdenticalTo:progressMessage];
         }
         
         if (sharedInstance.messages.count)
         {
-            NSString *title = sharedInstance.currentMessage.title;
-            NSString *subtitle = sharedInstance.currentMessage.subtitle;
-            
-            for (TSMessageView *n in sharedInstance.messages)
-            {
-                // avoid displaying the same messages twice in a row
-                BOOL equalTitle = ([n.title isEqualToString:title] || (!n.title && !title));
-                BOOL equalSubtitle = ([n.subtitle isEqualToString:subtitle] || (!n.subtitle && !subtitle));
-                
-                if (!equalTitle && !equalSubtitle) [sharedInstance displayMessage:n];
-            }
+            // All messages (except those with endless duration) will automatically display the next
+            // message in the queue (if any) when they are dismissed after the delay. So if the first
+            // message in the queue is of type endless (progress) and we dismiss it here, we are
+            // responsible for displaying the next (if any) in the queue
+            if (index == 0)
+                [sharedInstance displayCurrentMessage];
         }
     }];
     
@@ -261,7 +256,6 @@ __weak static UIViewController *_defaultViewController;
     
     // add view to window and show window
     [self.messageWindow.rootViewController.view addSubview:messageView];
-//    [self.messageWindow.rootViewController.view bringSubviewToFront:messageView];
     [self.messageWindow setHidden:NO];
 
     // animate
@@ -315,7 +309,9 @@ __weak static UIViewController *_defaultViewController;
          messageView.center = dismissToPoint;
      } completion:^(BOOL finished) {
          [messageView removeFromSuperview];
-         [self.messageWindow setHidden:YES];
+         
+         if (!self.messages.count)
+             [self.messageWindow setHidden:YES];
 
          if (completion) completion();
      }];

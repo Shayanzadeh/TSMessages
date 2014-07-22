@@ -84,7 +84,7 @@
 - (IBAction)didTapMessage:(id)sender
 {
     [TSMessage displayMessageWithTitle:NSLocalizedString(@"Tell the user something", nil)
-                              subtitle:NSLocalizedString(@"This is some neutral message!", nil)
+                              subtitle:NSLocalizedString(@"This is some neutral message! Look it's really long and goes to a new line!", nil)
                                   type:TSMessageTypeDefault];
 }
 
@@ -159,7 +159,8 @@
 
 - (IBAction)didTapDismissCurrentMessage:(id)sender
 {
-    [TSMessage dismissCurrentMessage];
+//    [TSMessage dismissCurrentMessage];
+    [TSMessage dismissProgressMessage];
 }
 
 - (IBAction)didTapEndless:(id)sender

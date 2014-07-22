@@ -125,7 +125,7 @@ static const CGFloat kTSDistanceBetweenTitleAndSubtitle = 0.0;
     self.contentLabel = [[UILabel alloc] init];
     self.contentLabel.numberOfLines = 0;
     self.contentLabel.lineBreakMode = NSLineBreakByTruncatingTail;
-    self.titleLabel.adjustsFontSizeToFitWidth = YES;
+//    self.contentLabel.adjustsFontSizeToFitWidth = YES;
     self.contentLabel.shadowOffset = CGSizeMake([self.config[@"shadowOffsetX"] floatValue], [self.config[@"shadowOffsetY"] floatValue]);
     self.contentLabel.shadowColor = [UIColor colorWithHexString:self.config[@"shadowColor"] alpha:1];
     self.contentLabel.backgroundColor = [UIColor clearColor];
@@ -163,7 +163,7 @@ static const CGFloat kTSDistanceBetweenTitleAndSubtitle = 0.0;
 {
     self.activityIndicatorView = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhite];
     self.activityIndicatorView.color = [UIColor colorWithHexString:self.config[@"textColor"] alpha:1];
-    self.activityIndicatorView.transform = CGAffineTransformMakeScale(0.7, 0.7);
+    self.activityIndicatorView.transform = CGAffineTransformMakeScale(0.5, 0.5);
     self.activityIndicatorView.frame = CGRectMake(TSMessageViewPaddingX, (20 - self.activityIndicatorView.frame.size.height) / 2, self.activityIndicatorView.frame.size.width, self.activityIndicatorView.frame.size.height);
     [self.activityIndicatorView startAnimating];
     
@@ -231,6 +231,8 @@ static const CGFloat kTSDistanceBetweenTitleAndSubtitle = 0.0;
     CGFloat textSpaceRight = self.button.frame.size.width + TSMessageViewPaddingX;
     CGFloat textSpaceLeft = TSMessageViewPaddingX;
     CGFloat messageHeight;
+    
+    self.contentLabel.textAlignment = NSTextAlignmentLeft;
 
     // status bar style
     if (self.activityIndicatorView)
@@ -244,10 +246,7 @@ static const CGFloat kTSDistanceBetweenTitleAndSubtitle = 0.0;
         [self sizeToFitIfAppropriate:self.titleLabel];
         
         // vertically center title
-        self.titleLabel.frame = CGRectMake(self.titleLabel.frame.origin.x,
-                                           (20 - self.titleLabel.frame.size.height) / 2,
-                                           self.titleLabel.frame.size.width,
-                                           self.titleLabel.frame.size.height);
+        self.titleLabel.center = CGPointMake(self.titleLabel.center.x, messageHeight / 2);
         
         // horizontally center activity indicator & title
         CGFloat centerOffset = (screenWidth - self.titleLabel.frame.origin.x - self.titleLabel.frame.size.width - TSMessageViewPaddingX) / 2;
@@ -269,10 +268,7 @@ static const CGFloat kTSDistanceBetweenTitleAndSubtitle = 0.0;
             if (!self.subtitle)
             {
                 // horizontally & vertically center title
-                self.titleLabel.frame = CGRectMake((screenWidth - self.titleLabel.frame.size.width) / 2,
-                                                   (messageHeight - self.titleLabel.frame.size.height) / 2,
-                                                   self.titleLabel.frame.size.width,
-                                                   self.titleLabel.frame.size.height);
+                self.titleLabel.center = CGPointMake(screenWidth / 2, messageHeight / 2);
             }
             else
             {
@@ -281,16 +277,11 @@ static const CGFloat kTSDistanceBetweenTitleAndSubtitle = 0.0;
                                                      screenWidth-(TSMessageViewPaddingX*2),
                                                      messageHeight - kTSDistanceBetweenTitleAndSubtitle - self.titleLabel.frame.origin.y - self.titleLabel.frame.size.height - TSMessageViewPaddingY);
                 [self sizeToFitIfAppropriate:self.contentLabel];
+                self.contentLabel.textAlignment = NSTextAlignmentCenter;
             
                 // horizontally center title & subtitle
-                self.contentLabel.frame = CGRectMake((screenWidth - self.contentLabel.frame.size.width) / 2,
-                                                     self.contentLabel.frame.origin.y,
-                                                     self.contentLabel.frame.size.width,
-                                                     self.contentLabel.frame.size.height);
-                self.titleLabel.frame = CGRectMake((screenWidth - self.titleLabel.frame.size.width) / 2,
-                                                   self.titleLabel.frame.origin.y,
-                                                   self.titleLabel.frame.size.width,
-                                                   self.titleLabel.frame.size.height);
+                self.contentLabel.center = CGPointMake(screenWidth / 2, self.contentLabel.center.y);
+                self.titleLabel.center = CGPointMake(screenWidth / 2, self.titleLabel.center.y);
                 
                 // vertically center title & subtitle
                 CGFloat centerOffset = (messageHeight - (self.contentLabel.frame.origin.y + self.contentLabel.frame.size.height + TSMessageViewPaddingY)) / 2;
@@ -309,10 +300,7 @@ static const CGFloat kTSDistanceBetweenTitleAndSubtitle = 0.0;
             if (!self.subtitle)
             {
                 // vertically center title
-                self.titleLabel.frame = CGRectMake(textSpaceLeft,
-                                                   (messageHeight - self.titleLabel.frame.size.height) / 2,
-                                                   self.titleLabel.frame.size.width,
-                                                   self.titleLabel.frame.size.height);
+                self.titleLabel.center = CGPointMake(self.titleLabel.center.x, messageHeight / 2);
             }
             else
             {
