@@ -1,28 +1,15 @@
 Pod::Spec.new do |s|
-  s.name         = "TSMessages"
-  s.version      = "0.9.10"
-  s.summary      = "Easy to use and customizable messages for iOS à la Tweetbot."
-  s.description  = <<-DESC
-                    This framework provides an easy to use class to show little message views on the top of the screen. (à la Tweetbot).
-The message moves from the top of the screen underneath the navigation bar and stays there for a few seconds, depending on the length of the displayed text. To dismiss a message before the time runs out, the user can swipe it to the top or just tap it.
-There are 4 different types already set up for you: Success, Error, Warning, Message.
-                   DESC
-
-  s.homepage     = "https://github.com/toursprung/TSMessages/"
-
-  s.license      = 'MIT'
-
-  s.author       = { "Felix Krause" => "krausefx@gmail.com" }
-
-  s.source       = { :git => "https://github.com/Shayanzadeh/TSMessages/", :branch => 'develop'}
-
-  s.platform     = :ios, '5.0'
-
-  s.source_files = 'TSMessages/Classes/**/*.{h,m}', 'TSMessages/Views/**/*.{h,m}'
-
-  s.resources = "TSMessages/Resources/**/*.{png,json}"
-
-
-  s.requires_arc = true
-  s.dependency 'HexColors'
+  s.name                  = "TSMessages"
+  s.version               = "1.0"
+  s.summary               = "Easy to use and customizable messages for iOS à la Tweetbot."
+  s.license               = { :type => 'MIT', :file => 'LICENSE' }
+  s.homepage              = "https://github.com/Shayanzadeh/TSMessages/"
+  s.author                = { "Felix Krause" => "krausefx@gmail.com" }
+  s.source                = { :git => "https://github.com/shayanzadeh/TSMessages.git", :branch => "jailbreak"}
+  s.source_files          = 'TSMessages/*.{h,m}'
+  s.public_header_files   = 'TSMessages/*.h'
+  s.resources             = 'TSMessages/Resources/*.{png,json}'
+  s.platform              = :ios
+  s.requires_arc          = true
+  s.ios.deployment_target = '5.0'
 end
