@@ -248,6 +248,7 @@
                                                                               constant:0.0]];
         
         fontSize += 2.0;
+        self.titleLabel.numberOfLines += 1;
     }
     
     if (self.messageViewType == TSMessageViewTypeTitleSubtitle || self.messageViewType == TSMessageViewTypeTitle)
@@ -334,6 +335,8 @@
                                                                                  attribute:NSLayoutAttributeTop
                                                                                 multiplier:1.0
                                                                                   constant:0.0]];
+            
+            self.contentLabel.numberOfLines += 1;
         default:
             break;
     }
