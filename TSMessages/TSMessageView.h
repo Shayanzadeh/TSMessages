@@ -18,7 +18,7 @@
 @property (nonatomic, assign) CGFloat duration;
 
 /** Use it's frame to find height of displayed message */
-@property (nonatomic) UIView *backgroundBlurView;
+@property (nonatomic) UIView *backgroundView;
 
 /** The position of the message (top or bottom) */
 @property (nonatomic, assign) TSMessagePosition position;
@@ -32,7 +32,7 @@
 /** Define whether or not the message can be dismissed by the user by tapping and swipping */
 @property (nonatomic, assign, getter=isUserDismissEnabled) BOOL userDismissEnabled;
 
-- (id)initWithTitle:(NSString *)title subtitle:(NSString *)subtitle image:(UIImage *)image type:(TSMessageType)type;
+- (instancetype)initWithTitle:(NSString *)title subtitle:(NSString *)subtitle image:(UIImage *)image type:(TSMessageType)type;
 
 /** Dismisses this message view */
 - (void)dismiss;

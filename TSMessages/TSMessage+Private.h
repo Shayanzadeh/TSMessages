@@ -11,8 +11,12 @@
 @class TSMessageView;
 
 @interface TSMessage (Private)
+
 + (NSMutableDictionary *)design;
+
 - (void)dismissMessage:(TSMessageView *)messageView;
 - (void)dismissMessage:(TSMessageView *)messageView completion:(void (^)())completion;
+
 - (TSMessageView *)currentMessage;
+
 @end

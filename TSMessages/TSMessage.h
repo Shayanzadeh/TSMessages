@@ -13,7 +13,8 @@
 @interface TSWindowContainer : UIWindow
 @end
 
-typedef NS_ENUM(NSInteger, TSMessageType) {
+typedef NS_ENUM(NSInteger, TSMessageType)
+{
     TSMessageTypeDefault = 0,
     TSMessageTypeSuccess,
     TSMessageTypeWarning,
@@ -21,12 +22,14 @@ typedef NS_ENUM(NSInteger, TSMessageType) {
     TSMessageTypeProgress
 };
 
-typedef NS_ENUM(NSInteger, TSMessagePosition) {
+typedef NS_ENUM(NSInteger, TSMessagePosition)
+{
     TSMessagePositionTop = 0,
     TSMessagePositionBottom
 };
 
-typedef NS_ENUM(NSInteger, TSMessageDuration) {
+typedef NS_ENUM(NSInteger, TSMessageDuration)
+{
     TSMessageDurationAutomatic = 0,
     TSMessageDurationEndless = -1, // The message is displayed until the user dismissed it or it is dismissed by calling dismissCurrentMessage
 };
@@ -36,6 +39,8 @@ typedef void (^TSMessageCallback)(TSMessageView *messageView);
 @interface TSMessage : NSObject
 
 @property (nonatomic, strong) NSMutableArray *messages;
+
++ (NSMutableDictionary *)design;
 
 + (instancetype)sharedMessage;
 

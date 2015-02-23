@@ -16,38 +16,64 @@
 #define TSMessageViewPaddingY 5.0
 #define TSMessageViewHeight 64.0 // status bar + navigation bar
 
-static const CGFloat kTSDistanceBetweenTitleAndSubtitle = 0.0;
-
 @interface TSMessageView ()
-@property (nonatomic) NSDictionary *config;
-@property (nonatomic) UILabel *titleLabel;
-@property (nonatomic) UILabel *contentLabel;
-@property (nonatomic) UIImageView *iconImageView;
-@property (nonatomic) UIButton *button;
-@property (nonatomic) UIActivityIndicatorView *activityIndicatorView;
-@property (nonatomic) UITapGestureRecognizer *tapRecognizer;
-@property (nonatomic) UISwipeGestureRecognizer *swipeRecognizer;
+
+@property (nonatomic, strong) NSDictionary *config;
+@property (nonatomic, strong) UILabel *titleLabel;
+@property (nonatomic, strong) UILabel *contentLabel;
+@property (nonatomic, strong) UIImageView *iconImageView;
+@property (nonatomic, strong) UIButton *button;
+@property (nonatomic, strong) UIActivityIndicatorView *activityIndicatorView;
+@property (nonatomic, strong) UITapGestureRecognizer *tapRecognizer;
+@property (nonatomic, strong) UISwipeGestureRecognizer *swipeRecognizer;
 @property (nonatomic, copy) TSMessageCallback buttonCallback;
-@property (nonatomic, getter=isMessageFullyDisplayed) BOOL messageFullyDisplayed;
+@property (nonatomic, assign, getter=isMessageFullyDisplayed) BOOL messageFullyDisplayed;
+@property (nonatomic, assign) TSMessageViewType messageViewType;
+
 @end
 
 @implementation TSMessageView
 
-- (id)initWithTitle:(NSString *)title subtitle:(NSString *)subtitle image:(UIImage *)image type:(TSMessageType)type
+- (instancetype)initWithTitle:(NSString *)title subtitle:(NSString *)subtitle image:(UIImage *)image type:(TSMessageType)type
 {
-    if ((self = [super init]))
+    self = [super init];
+    
+    if (self)
     {
         self.userDismissEnabled = type == TSMessageTypeProgress ? NO : YES;
         self.duration = type == TSMessageTypeProgress ? TSMessageDurationEndless : TSMessageDurationAutomatic;
         self.position = TSMessagePositionTop;
         
         [self setupConfigForType:type];
+        
+        if (image || (self.config[@"imageName"] != [NSNull null] && [self.config[@"imageName"] length]))
+        {
+            if (title.length)
+            {
+                self.messageViewType =  subtitle.length ? TSMessageViewTypeImageTitleSubtitle : TSMessageViewTypeImageTitle;
+            }
+            else
+            {
+                self.messageViewType = TSMessageViewTypeImageSubtitle;
+            }
+        }
+        else
+        {
+            if (title.length)
+            {
+                self.messageViewType = subtitle.length ? TSMessageViewTypeTitleSubtitle : TSMessageViewTypeTitle;
+            }
+            else
+            {
+                self.messageViewType = TSMessageViewTypeSubtitle;
+            }
+        }
+        
         [self setupBackgroundView];
+        [self setupImage:image];
         [self setupTitle:title];
         [self setupSubtitle:subtitle];
-        [self setupImage:image];
         if (type == TSMessageTypeProgress) [self setUpActivityIndicator];
-        [self setupAutoresizing];
         [self setupGestureRecognizers];
     }
     
@@ -75,28 +101,55 @@ static const CGFloat kTSDistanceBetweenTitleAndSubtitle = 0.0;
 
 - (void)setupBackgroundView
 {
-    self.backgroundBlurView = [[UIView alloc] init];
-    self.backgroundBlurView.autoresizingMask = UIViewAutoresizingFlexibleWidth;
-    self.backgroundBlurView.backgroundColor = [UIColor colorWithHexString:self.config[@"backgroundColor"]];
+    self.backgroundView = [UIView new];
+    self.backgroundView.translatesAutoresizingMaskIntoConstraints = NO;
+    self.backgroundView.backgroundColor = [UIColor colorWithHexString:self.config[@"backgroundColor"]];
     
-    [self addSubview:self.backgroundBlurView];
-}
-
-- (void)setupAutoresizing
-{
-    self.autoresizingMask = (self.position == TSMessagePositionTop) ?
-        (UIViewAutoresizingFlexibleWidth) :
-        (UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleBottomMargin);
+    [self addSubview:self.backgroundView];
+    
+    [self addConstraint:[NSLayoutConstraint constraintWithItem:self.backgroundView
+                                                     attribute:NSLayoutAttributeLeading
+                                                     relatedBy:NSLayoutRelationEqual
+                                                        toItem:self
+                                                     attribute:NSLayoutAttributeLeft
+                                                    multiplier:1.0
+                                                      constant:0.0]];
+    
+    [self addConstraint:[NSLayoutConstraint constraintWithItem:self.backgroundView
+                                                     attribute:NSLayoutAttributeTrailing
+                                                     relatedBy:NSLayoutRelationEqual
+                                                        toItem:self
+                                                     attribute:NSLayoutAttributeRight
+                                                    multiplier:1.0
+                                                      constant:0.0]];
+    
+    [self addConstraint:[NSLayoutConstraint constraintWithItem:self.backgroundView
+                                                     attribute:NSLayoutAttributeTop
+                                                     relatedBy:NSLayoutRelationEqual
+                                                        toItem:self
+                                                     attribute:NSLayoutAttributeTop
+                                                    multiplier:1.0
+                                                      constant:0.0]];
+    
+    [self addConstraint:[NSLayoutConstraint constraintWithItem:self.backgroundView
+                                                     attribute:NSLayoutAttributeBottom
+                                                     relatedBy:NSLayoutRelationEqual
+                                                        toItem:self
+                                                     attribute:NSLayoutAttributeBottom
+                                                    multiplier:1.0
+                                                      constant:0.0]];
 }
 
 - (void)setupTitle:(NSString *)title
 {
+    if (self.messageViewType == TSMessageViewTypeSubtitle || self.messageViewType == TSMessageViewTypeTitle) return;
+    
     UIColor *fontColor = [UIColor colorWithHexString:self.config[@"textColor"]];
     CGFloat fontSize = [self.config[@"titleFontSize"] floatValue];
     NSString *fontName = self.config[@"titleFontName"];
     
-    self.titleLabel = [[UILabel alloc] init];
-    self.titleLabel.numberOfLines = 0;
+    self.titleLabel = [UILabel new];
+    self.titleLabel.numberOfLines = 1;
     self.titleLabel.lineBreakMode = NSLineBreakByTruncatingTail;
     self.titleLabel.adjustsFontSizeToFitWidth = YES;
     self.titleLabel.shadowOffset = CGSizeMake([self.config[@"shadowOffsetX"] floatValue], [self.config[@"shadowOffsetY"] floatValue]);
@@ -104,11 +157,88 @@ static const CGFloat kTSDistanceBetweenTitleAndSubtitle = 0.0;
     self.titleLabel.backgroundColor = [UIColor clearColor];
     self.titleLabel.textColor = fontColor;
     self.titleLabel.text = title;
+    self.titleLabel.translatesAutoresizingMaskIntoConstraints = NO;
     self.titleLabel.font = fontName ?
         [UIFont fontWithName:fontName size:fontSize] :
         [UIFont boldSystemFontOfSize:fontSize];
     
     [self addSubview:self.titleLabel];
+    
+    switch (self.messageViewType)
+    {
+        case TSMessageViewTypeImageTitle:
+            [self addConstraint:[NSLayoutConstraint constraintWithItem:self.titleLabel
+                                                             attribute:NSLayoutAttributeBottom
+                                                             relatedBy:NSLayoutRelationEqual
+                                                                toItem:self
+                                                             attribute:NSLayoutAttributeBottom
+                                                            multiplier:1.0
+                                                              constant:-10.0]];
+        case TSMessageViewTypeImageTitleSubtitle:
+            [self addConstraint:[NSLayoutConstraint constraintWithItem:self.titleLabel
+                                                             attribute:NSLayoutAttributeTop
+                                                             relatedBy:NSLayoutRelationEqual
+                                                                toItem:self
+                                                             attribute:NSLayoutAttributeTop
+                                                            multiplier:1.0
+                                                              constant:10.0]];
+            
+            [self addConstraint:[NSLayoutConstraint constraintWithItem:self.titleLabel
+                                                             attribute:NSLayoutAttributeLeading
+                                                             relatedBy:NSLayoutRelationEqual
+                                                                toItem:self.iconImageView
+                                                             attribute:NSLayoutAttributeRight
+                                                            multiplier:1.0
+                                                              constant:10.0]];
+            
+            [self addConstraint:[NSLayoutConstraint constraintWithItem:self.titleLabel
+                                                             attribute:NSLayoutAttributeTrailing
+                                                             relatedBy:NSLayoutRelationEqual
+                                                                toItem:self
+                                                             attribute:NSLayoutAttributeRight
+                                                            multiplier:1.0
+                                                              constant:-10.0]];
+            
+            self.titleLabel.textAlignment = NSTextAlignmentLeft;
+            break;
+        case TSMessageViewTypeTitle:
+            [self addConstraint:[NSLayoutConstraint constraintWithItem:self.titleLabel
+                                                             attribute:NSLayoutAttributeBottom
+                                                             relatedBy:NSLayoutRelationEqual
+                                                                toItem:self
+                                                             attribute:NSLayoutAttributeBottom
+                                                            multiplier:1.0
+                                                              constant:-10.0]];
+        case TSMessageViewTypeTitleSubtitle:
+            [self addConstraint:[NSLayoutConstraint constraintWithItem:self.titleLabel
+                                                             attribute:NSLayoutAttributeTop
+                                                             relatedBy:NSLayoutRelationEqual
+                                                                toItem:self
+                                                             attribute:NSLayoutAttributeTop
+                                                            multiplier:1.0
+                                                              constant:10.0]];
+            
+            [self addConstraint:[NSLayoutConstraint constraintWithItem:self.titleLabel
+                                                             attribute:NSLayoutAttributeLeading
+                                                             relatedBy:NSLayoutRelationEqual
+                                                                toItem:self
+                                                             attribute:NSLayoutAttributeLeft
+                                                            multiplier:1.0
+                                                              constant:10.0]];
+            
+            [self addConstraint:[NSLayoutConstraint constraintWithItem:self.titleLabel
+                                                             attribute:NSLayoutAttributeTrailing
+                                                             relatedBy:NSLayoutRelationEqual
+                                                                toItem:self
+                                                             attribute:NSLayoutAttributeRight
+                                                            multiplier:1.0
+                                                              constant:-10.0]];
+            
+            self.titleLabel.textAlignment = NSTextAlignmentCenter;
+            break;
+        default:
+            break;
+    }
 }
 
 - (void)setupSubtitle:(NSString *)subtitle
@@ -123,7 +253,7 @@ static const CGFloat kTSDistanceBetweenTitleAndSubtitle = 0.0;
     if (!contentTextColor) contentTextColor = fontColor;
     
     self.contentLabel = [[UILabel alloc] init];
-    self.contentLabel.numberOfLines = 0;
+    self.contentLabel.numberOfLines = 2;
     self.contentLabel.lineBreakMode = NSLineBreakByTruncatingTail;
 //    self.contentLabel.adjustsFontSizeToFitWidth = YES;
     self.contentLabel.shadowOffset = CGSizeMake([self.config[@"shadowOffsetX"] floatValue], [self.config[@"shadowOffsetY"] floatValue]);
@@ -131,21 +261,153 @@ static const CGFloat kTSDistanceBetweenTitleAndSubtitle = 0.0;
     self.contentLabel.backgroundColor = [UIColor clearColor];
     self.contentLabel.textColor = contentTextColor;
     self.contentLabel.text = subtitle;
+    self.contentLabel.translatesAutoresizingMaskIntoConstraints = NO;
     self.contentLabel.font = fontName ?
         [UIFont fontWithName:fontName size:fontSize] :
         [UIFont systemFontOfSize:fontSize];
     
     [self addSubview:self.contentLabel];
+    
+    switch (self.messageViewType)
+    {
+        case TSMessageViewTypeImageTitleSubtitle:
+        case TSMessageViewTypeImageSubtitle:
+            [self addConstraint:[NSLayoutConstraint constraintWithItem:self.contentLabel
+                                                             attribute:NSLayoutAttributeBottom
+                                                             relatedBy:NSLayoutRelationEqual
+                                                                toItem:self
+                                                             attribute:NSLayoutAttributeBottom
+                                                            multiplier:1.0
+                                                              constant:-10.0]];
+            
+            [self addConstraint:[NSLayoutConstraint constraintWithItem:self.contentLabel
+                                                             attribute:NSLayoutAttributeLeading
+                                                             relatedBy:NSLayoutRelationEqual
+                                                                toItem:self.iconImageView
+                                                             attribute:NSLayoutAttributeRight
+                                                            multiplier:1.0
+                                                              constant:10.0]];
+            
+            [self addConstraint:[NSLayoutConstraint constraintWithItem:self.contentLabel
+                                                             attribute:NSLayoutAttributeRight
+                                                             relatedBy:NSLayoutRelationEqual
+                                                                toItem:self
+                                                             attribute:NSLayoutAttributeRight
+                                                            multiplier:1.0
+                                                              constant:-10.0]];
+            
+            self.contentLabel.textAlignment = NSTextAlignmentLeft;
+            break;
+        case TSMessageViewTypeSubtitle:
+        case TSMessageViewTypeTitleSubtitle:
+            [self addConstraint:[NSLayoutConstraint constraintWithItem:self.contentLabel
+                                                             attribute:NSLayoutAttributeLeading
+                                                             relatedBy:NSLayoutRelationEqual
+                                                                toItem:self
+                                                             attribute:NSLayoutAttributeLeft
+                                                            multiplier:1.0
+                                                              constant:10.0]];
+            
+            [self addConstraint:[NSLayoutConstraint constraintWithItem:self.contentLabel
+                                                             attribute:NSLayoutAttributeTrailing
+                                                             relatedBy:NSLayoutRelationEqual
+                                                                toItem:self
+                                                             attribute:NSLayoutAttributeRight
+                                                            multiplier:1.0
+                                                              constant:-10.0]];
+            
+            [self addConstraint:[NSLayoutConstraint constraintWithItem:self.contentLabel
+                                                             attribute:NSLayoutAttributeBottom
+                                                             relatedBy:NSLayoutRelationEqual
+                                                                toItem:self
+                                                             attribute:NSLayoutAttributeBottom
+                                                            multiplier:1.0
+                                                              constant:-10.0]];
+            
+            self.contentLabel.textAlignment = NSTextAlignmentCenter;
+            break;
+        default:
+            break;
+    }
+    
+    if (self.messageViewType == TSMessageViewTypeImageTitleSubtitle || self.messageViewType == TSMessageViewTypeTitleSubtitle)
+    {
+        [self addConstraint:[NSLayoutConstraint constraintWithItem:self.contentLabel
+                                                         attribute:NSLayoutAttributeTop
+                                                         relatedBy:NSLayoutRelationEqual
+                                                            toItem:self.titleLabel
+                                                         attribute:NSLayoutAttributeBottom
+                                                        multiplier:1.0
+                                                          constant:4.0]];
+    }
+    else if (self.messageViewType == TSMessageViewTypeImageSubtitle || self.messageViewType == TSMessageViewTypeSubtitle)
+    {
+        [self addConstraint:[NSLayoutConstraint constraintWithItem:self.contentLabel
+                                                         attribute:NSLayoutAttributeTop
+                                                         relatedBy:NSLayoutRelationEqual
+                                                            toItem:self
+                                                         attribute:NSLayoutAttributeTop
+                                                        multiplier:1.0
+                                                          constant:10.0]];
+    }
 }
 
 - (void)setupImage:(UIImage *)image
 {
-    if (!image && self.config[@"imageName"] != [NSNull null] && [self.config[@"imageName"] length]) image = [UIImage imageNamed:self.config[@"imageName"]];
+    switch (self.messageViewType)
+    {
+        case TSMessageViewTypeSubtitle:
+        case TSMessageViewTypeTitle:
+        case TSMessageViewTypeTitleSubtitle:
+            return;
+        default:
+            break;
+    }
     
+    if (!image) image = [UIImage imageNamed:self.config[@"imageName"]];
     self.iconImageView = [[UIImageView alloc] initWithImage:image];
-    self.iconImageView.frame = CGRectMake(TSMessageViewPaddingX, round((TSMessageViewHeight-image.size.height)/2) , image.size.width, image.size.height);
-    
+    self.iconImageView.translatesAutoresizingMaskIntoConstraints = NO;
     [self addSubview:self.iconImageView];
+    
+    [self addConstraint:[NSLayoutConstraint constraintWithItem:self.iconImageView
+                                                     attribute:NSLayoutAttributeWidth
+                                                     relatedBy:NSLayoutRelationEqual
+                                                        toItem:nil
+                                                     attribute:NSLayoutAttributeNotAnAttribute
+                                                    multiplier:1.0
+                                                      constant:44.0]];
+    
+    [self addConstraint:[NSLayoutConstraint constraintWithItem:self.iconImageView
+                                                     attribute:NSLayoutAttributeHeight
+                                                     relatedBy:NSLayoutRelationEqual
+                                                        toItem:nil
+                                                     attribute:NSLayoutAttributeNotAnAttribute
+                                                    multiplier:1.0
+                                                      constant:44.0]];
+    
+    [self addConstraint:[NSLayoutConstraint constraintWithItem:self.iconImageView
+                                                     attribute:NSLayoutAttributeLeading
+                                                     relatedBy:NSLayoutRelationEqual
+                                                        toItem:self
+                                                     attribute:NSLayoutAttributeLeft
+                                                    multiplier:1.0
+                                                      constant:10.0]];
+    
+    [self addConstraint:[NSLayoutConstraint constraintWithItem:self.iconImageView
+                                                     attribute:NSLayoutAttributeTop
+                                                     relatedBy:NSLayoutRelationEqual
+                                                        toItem:self
+                                                     attribute:NSLayoutAttributeTop
+                                                    multiplier:1.0
+                                                      constant:10.0]];
+    
+    [self addConstraint:[NSLayoutConstraint constraintWithItem:self.iconImageView
+                                                     attribute:NSLayoutAttributeBottom
+                                                     relatedBy:NSLayoutRelationEqual
+                                                        toItem:self
+                                                     attribute:NSLayoutAttributeBottom
+                                                    multiplier:1.0
+                                                      constant:-10.0]];
 }
 
 - (void)setupGestureRecognizers
@@ -203,11 +465,13 @@ static const CGFloat kTSDistanceBetweenTitleAndSubtitle = 0.0;
     [self addSubview:self.button];
 }
 
-- (void)displayOrEnqueue {
+- (void)displayOrEnqueue
+{
     [TSMessage displayOrEnqueueMessage:self];
 }
 
-- (void)displayPermanently {
+- (void)displayPermanently
+{
     [TSMessage displayPermanentMessage:self];
 }
 
@@ -221,141 +485,6 @@ static const CGFloat kTSDistanceBetweenTitleAndSubtitle = 0.0;
     {
         [self dismiss];
     }
-}
-
-- (void)layoutSubviews
-{
-    [super layoutSubviews];
-    
-    CGFloat screenWidth = self.viewController.view.bounds.size.width;
-    CGFloat textSpaceRight = self.button.frame.size.width + TSMessageViewPaddingX;
-    CGFloat textSpaceLeft = TSMessageViewPaddingX;
-    CGFloat messageHeight;
-    
-    self.contentLabel.textAlignment = NSTextAlignmentLeft;
-
-    // status bar style
-    if (self.activityIndicatorView)
-    {
-        messageHeight = 20.0;
-        
-        self.titleLabel.frame = CGRectMake(self.activityIndicatorView.frame.origin.x + self.activityIndicatorView.frame.size.width + 5,
-                                           1,
-                                           screenWidth - self.activityIndicatorView.frame.origin.x - self.activityIndicatorView.frame.size.width - TSMessageViewPaddingX - 5,
-                                           messageHeight - 1);
-        [self sizeToFitIfAppropriate:self.titleLabel];
-        
-        // vertically center title
-        self.titleLabel.center = CGPointMake(self.titleLabel.center.x, messageHeight / 2);
-        
-        // horizontally center activity indicator & title
-        CGFloat centerOffset = (screenWidth - self.titleLabel.frame.origin.x - self.titleLabel.frame.size.width - TSMessageViewPaddingX) / 2;
-        self.activityIndicatorView.frame = CGRectOffset(self.activityIndicatorView.frame, centerOffset, 0);
-        self.titleLabel.frame = CGRectOffset(self.titleLabel.frame, centerOffset, 0);
-    }
-    // navigation bar style
-    else
-    {
-        messageHeight = TSMessageViewHeight;
-
-        // there's no icon
-        if (!self.iconImageView.image)
-        {
-            self.titleLabel.frame = CGRectMake(TSMessageViewPaddingX, TSMessageViewPaddingY, screenWidth-(TSMessageViewPaddingX*2), messageHeight-(TSMessageViewPaddingY*2));
-            [self sizeToFitIfAppropriate:self.titleLabel];
-            
-            // there's no subtitle
-            if (!self.subtitle)
-            {
-                // horizontally & vertically center title
-                self.titleLabel.center = CGPointMake(screenWidth / 2, messageHeight / 2);
-            }
-            else
-            {
-                self.contentLabel.frame = CGRectMake(TSMessageViewPaddingX,
-                                                     self.titleLabel.frame.origin.y + self.titleLabel.frame.size.height + kTSDistanceBetweenTitleAndSubtitle,
-                                                     screenWidth-(TSMessageViewPaddingX*2),
-                                                     messageHeight - kTSDistanceBetweenTitleAndSubtitle - self.titleLabel.frame.origin.y - self.titleLabel.frame.size.height - TSMessageViewPaddingY);
-                [self sizeToFitIfAppropriate:self.contentLabel];
-                self.contentLabel.textAlignment = NSTextAlignmentCenter;
-            
-                // horizontally center title & subtitle
-                self.contentLabel.center = CGPointMake(screenWidth / 2, self.contentLabel.center.y);
-                self.titleLabel.center = CGPointMake(screenWidth / 2, self.titleLabel.center.y);
-                
-                // vertically center title & subtitle
-                CGFloat centerOffset = (messageHeight - (self.contentLabel.frame.origin.y + self.contentLabel.frame.size.height + TSMessageViewPaddingY)) / 2;
-                self.titleLabel.frame = CGRectOffset(self.titleLabel.frame, 0, centerOffset);
-                self.contentLabel.frame = CGRectOffset(self.contentLabel.frame, 0, centerOffset);
-            }
-        }
-        // there's an icon
-        else
-        {
-            textSpaceLeft += self.iconImageView.image.size.width + self.iconImageView.frame.origin.x;
-
-            self.titleLabel.frame = CGRectMake(textSpaceLeft, TSMessageViewPaddingY, screenWidth - textSpaceLeft - textSpaceRight - self.titleLabel.frame.size.width, messageHeight - (TSMessageViewPaddingY * 2));
-            [self sizeToFitIfAppropriate:self.titleLabel];
-
-            if (!self.subtitle)
-            {
-                // vertically center title
-                self.titleLabel.center = CGPointMake(self.titleLabel.center.x, messageHeight / 2);
-            }
-            else
-            {
-                self.contentLabel.frame = CGRectMake(textSpaceLeft,
-                                                     self.titleLabel.frame.origin.y + self.titleLabel.frame.size.height + kTSDistanceBetweenTitleAndSubtitle,
-                                                     screenWidth - textSpaceLeft - textSpaceRight - self.contentLabel.frame.size.width,
-                                                     messageHeight - kTSDistanceBetweenTitleAndSubtitle - self.titleLabel.frame.origin.y - self.titleLabel.frame.size.height - TSMessageViewPaddingY);
-                [self sizeToFitIfAppropriate:self.contentLabel];
-
-                // vertically center title & subtitle
-                CGFloat centerOffset = (messageHeight - (self.contentLabel.frame.origin.y + self.contentLabel.frame.size.height + TSMessageViewPaddingY)) / 2;
-                self.titleLabel.frame = CGRectOffset(self.titleLabel.frame, 0, centerOffset);
-                self.contentLabel.frame = CGRectOffset(self.contentLabel.frame, 0, centerOffset);
-            }
-        }
-    }
-    
-    self.frame = CGRectMake(0, 0, screenWidth, messageHeight);
-    
-//    // button
-//    if (self.button)
-//    {
-//        self.button.center = CGPointMake([self.button center].x, round(currentHeight / 2.0));
-//    
-//        self.button.frame = CGRectMake(self.frame.size.width - textSpaceRight,
-//                                       round((self.frame.size.height / 2.0) - self.button.frame.size.height / 2.0),
-//                                       self.button.frame.size.width,
-//                                       self.button.frame.size.height);
-//    }
-    
-    CGRect backgroundFrame = CGRectMake(0, 0, screenWidth, messageHeight);
-    
-    // increase frame of background view because of the spring animation
-    if (self.position == TSMessagePositionTop)
-        backgroundFrame = UIEdgeInsetsInsetRect(backgroundFrame, UIEdgeInsetsMake(-30.f, 0.f, 0.f, 0.f));
-    else
-        backgroundFrame = UIEdgeInsetsInsetRect(backgroundFrame, UIEdgeInsetsMake(0.f, 0.f, -30.f, 0.f));
-    
-    self.backgroundBlurView.frame = backgroundFrame;
-}
-
-- (void)prepareForDisplay
-{
-    [self setNeedsLayout];
-    [self layoutIfNeeded];
-    
-    CGFloat actualHeight = self.frame.size.height;
-    CGFloat topPosition = -actualHeight;
-    
-    if (self.position == TSMessagePositionBottom)
-    {
-        topPosition = self.viewController.view.bounds.size.height;
-    }
-    
-    self.frame = CGRectMake(0, topPosition, self.viewController.view.bounds.size.width, actualHeight);
 }
 
 - (CGPoint)centerForDisplay
@@ -456,6 +585,8 @@ static const CGFloat kTSDistanceBetweenTitleAndSubtitle = 0.0;
     {
         [view sizeToFit];
     }
+    
+    NSLog(@"%@", NSStringFromCGSize(proposedSize));
 }
 
 @end

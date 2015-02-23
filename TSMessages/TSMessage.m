@@ -12,7 +12,7 @@
 
 #define kTSMessageDisplayTime 1.5
 #define kTSMessageAnimationDuration 0.4
-#define kTSMessageExtraDisplayTimePerPixel 0.04
+#define kTSMessageExtraDisplayTimePerCharacter 0.03
 #define kTSDesignFileName @"TSMessagesDefaultDesign.json"
 
 #pragma mark - TSWindowContainer -
@@ -22,7 +22,7 @@
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event
 {
     TSMessageView *message = (TSMessageView *)[TSMessage sharedMessage].messages.firstObject;
-    CGFloat messageHeight = message.backgroundBlurView.frame.size.height;
+    CGFloat messageHeight = message.backgroundView.frame.size.height;
     
     if (message.position == TSMessagePositionTop)
     {
@@ -44,12 +44,12 @@
 #pragma mark - TSMessage -
 
 @interface TSMessage ()
+
 @property (nonatomic, strong) TSWindowContainer *messageWindow;
+
 @end
 
 @implementation TSMessage
-
-__weak static UIViewController *_defaultViewController;
 
 + (TSMessage *)sharedMessage
 {
@@ -65,16 +65,18 @@ __weak static UIViewController *_defaultViewController;
 
 - (id)init
 {
-    if ((self = [super init]))
+    self = [super init];
+    
+    if (self)
     {
-        _messages = [[NSMutableArray alloc] init];
+        self.messages = [NSMutableArray new];
         
-        _messageWindow = [[TSWindowContainer alloc] initWithFrame:[UIScreen mainScreen].bounds];
-        _messageWindow.backgroundColor = [UIColor clearColor];
-        _messageWindow.userInteractionEnabled = YES;
-        _messageWindow.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-        _messageWindow.windowLevel = UIWindowLevelStatusBar;
-        _messageWindow.rootViewController = [[UIViewController alloc] init];
+        self.messageWindow = [[TSWindowContainer alloc] initWithFrame:[UIScreen mainScreen].bounds];
+        self.messageWindow.backgroundColor = [UIColor clearColor];
+        self.messageWindow.userInteractionEnabled = YES;
+        self.messageWindow.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        self.messageWindow.windowLevel = UIWindowLevelStatusBar;
+        self.messageWindow.rootViewController = [UIViewController new];
     }
     
     return self;
@@ -90,7 +92,6 @@ __weak static UIViewController *_defaultViewController;
 + (TSMessageView *)messageWithTitle:(NSString *)title subtitle:(NSString *)subtitle image:(UIImage *)image type:(TSMessageType)type
 {
     TSMessageView *view = [[TSMessageView alloc] initWithTitle:title subtitle:subtitle image:image type:type];
-    
     view.viewController = [TSMessage sharedMessage].messageWindow.rootViewController;
     
     return view;
@@ -252,20 +253,52 @@ __weak static UIViewController *_defaultViewController;
 
 - (void)displayMessage:(TSMessageView *)messageView
 {
-    [messageView prepareForDisplay];
-    
     // add view to window and show window
     [self.messageWindow.rootViewController.view addSubview:messageView];
     [self.messageWindow setHidden:NO];
+    
+    messageView.translatesAutoresizingMaskIntoConstraints = NO;
+    
+    [self.messageWindow.rootViewController.view addConstraint:[NSLayoutConstraint constraintWithItem:messageView
+                                                                                           attribute:NSLayoutAttributeLeading
+                                                                                           relatedBy:NSLayoutRelationEqual
+                                                                                              toItem:self.messageWindow.rootViewController.view
+                                                                                           attribute:NSLayoutAttributeLeft
+                                                                                          multiplier:1.0
+                                                                                            constant:0.0]];
+    
+    [self.messageWindow.rootViewController.view addConstraint:[NSLayoutConstraint constraintWithItem:messageView
+                                                                                           attribute:NSLayoutAttributeTrailing
+                                                                                           relatedBy:NSLayoutRelationEqual
+                                                                                              toItem:self.messageWindow.rootViewController.view
+                                                                                           attribute:NSLayoutAttributeRight
+                                                                                          multiplier:1.0
+                                                                                            constant:0.0]];
+    
+    [self.messageWindow.rootViewController.view addConstraint:[NSLayoutConstraint constraintWithItem:messageView
+                                                                                           attribute:NSLayoutAttributeTop
+                                                                                           relatedBy:NSLayoutRelationEqual
+                                                                                              toItem:self.messageWindow.rootViewController.view
+                                                                                           attribute:NSLayoutAttributeTop
+                                                                                          multiplier:1.0
+                                                                                            constant:0.0]];
+    
+    [self.messageWindow.rootViewController.view addConstraint:[NSLayoutConstraint constraintWithItem:messageView
+                                                                                           attribute:NSLayoutAttributeHeight
+                                                                                           relatedBy:NSLayoutRelationEqual
+                                                                                              toItem:nil
+                                                                                           attribute:NSLayoutAttributeNotAnAttribute
+                                                                                          multiplier:1.0
+                                                                                            constant:64.0]];
 
     // animate
     [UIView animateWithDuration:kTSMessageAnimationDuration + 0.1
-                          delay:0
+                          delay:0.0
          usingSpringWithDamping:0.7
-          initialSpringVelocity:0.f
+          initialSpringVelocity:0.0
                         options:UIViewAnimationOptionCurveEaseInOut | UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionAllowUserInteraction
                      animations:^{
-                         messageView.center = messageView.centerForDisplay;
+                         messageView.center = CGPointMake(messageView.center.x, 64.0 / 2.0);
                      }
                      completion:^(BOOL finished) {
                          messageView.messageFullyDisplayed = YES;
@@ -274,7 +307,7 @@ __weak static UIViewController *_defaultViewController;
     // duration
     if (messageView.duration == TSMessageDurationAutomatic)
     {
-        messageView.duration = kTSMessageAnimationDuration + kTSMessageDisplayTime + messageView.frame.size.height * kTSMessageExtraDisplayTimePerPixel;
+        messageView.duration = kTSMessageAnimationDuration + kTSMessageDisplayTime + ((messageView.subtitle.length + messageView.title.length) * kTSMessageExtraDisplayTimePerCharacter);
     }
 
     if (messageView.duration != TSMessageDurationEndless)
