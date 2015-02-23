@@ -23,6 +23,7 @@
 @property (nonatomic, strong) UILabel *contentLabel;
 @property (nonatomic, strong) UIImageView *iconImageView;
 @property (nonatomic, strong) UIButton *button;
+@property (nonatomic, strong) UIView *labelsContainerView;
 @property (nonatomic, strong) UIActivityIndicatorView *activityIndicatorView;
 @property (nonatomic, strong) UITapGestureRecognizer *tapRecognizer;
 @property (nonatomic, strong) UISwipeGestureRecognizer *swipeRecognizer;
@@ -71,6 +72,7 @@
         
         [self setupBackgroundView];
         [self setupImage:image];
+        [self setupLabelsContainerView];
         [self setupTitle:title];
         [self setupSubtitle:subtitle];
         if (type == TSMessageTypeProgress) [self setUpActivityIndicator];
@@ -140,9 +142,59 @@
                                                       constant:0.0]];
 }
 
+- (void)setupLabelsContainerView
+{
+    self.labelsContainerView = [UIView new];
+    self.labelsContainerView.translatesAutoresizingMaskIntoConstraints = NO;
+    self.labelsContainerView.backgroundColor = [UIColor clearColor];
+    [self addSubview:self.labelsContainerView];
+    
+    [self addConstraint:[NSLayoutConstraint constraintWithItem:self.labelsContainerView
+                                                     attribute:NSLayoutAttributeCenterY
+                                                     relatedBy:NSLayoutRelationEqual
+                                                        toItem:self
+                                                     attribute:NSLayoutAttributeCenterY
+                                                    multiplier:1.0
+                                                      constant:0.0]];
+    
+    [self addConstraint:[NSLayoutConstraint constraintWithItem:self.labelsContainerView
+                                                     attribute:NSLayoutAttributeTrailing
+                                                     relatedBy:NSLayoutRelationEqual
+                                                        toItem:self
+                                                     attribute:NSLayoutAttributeRight
+                                                    multiplier:1.0
+                                                      constant:-10.0]];
+    
+    switch (self.messageViewType)
+    {
+        case TSMessageViewTypeImageTitleSubtitle:
+        case TSMessageViewTypeImageSubtitle:
+        case TSMessageViewTypeImageTitle:
+            [self addConstraint:[NSLayoutConstraint constraintWithItem:self.labelsContainerView
+                                                             attribute:NSLayoutAttributeLeading
+                                                             relatedBy:NSLayoutRelationEqual
+                                                                toItem:self.iconImageView
+                                                             attribute:NSLayoutAttributeRight
+                                                            multiplier:1.0
+                                                              constant:10.0]];
+            break;
+        case TSMessageViewTypeSubtitle:
+        case TSMessageViewTypeTitle:
+        case TSMessageViewTypeTitleSubtitle:
+            [self addConstraint:[NSLayoutConstraint constraintWithItem:self.labelsContainerView
+                                                             attribute:NSLayoutAttributeLeading
+                                                             relatedBy:NSLayoutRelationEqual
+                                                                toItem:self
+                                                             attribute:NSLayoutAttributeLeft
+                                                            multiplier:1.0
+                                                              constant:10.0]];
+            break;
+    }
+}
+
 - (void)setupTitle:(NSString *)title
 {
-    if (self.messageViewType == TSMessageViewTypeSubtitle || self.messageViewType == TSMessageViewTypeTitle) return;
+    if (self.messageViewType == TSMessageViewTypeSubtitle || self.messageViewType == TSMessageViewTypeImageSubtitle) return;
     
     UIColor *fontColor = [UIColor colorWithHexString:self.config[@"textColor"]];
     CGFloat fontSize = [self.config[@"titleFontSize"] floatValue];
@@ -158,87 +210,56 @@
     self.titleLabel.textColor = fontColor;
     self.titleLabel.text = title;
     self.titleLabel.translatesAutoresizingMaskIntoConstraints = NO;
-    self.titleLabel.font = fontName ?
-        [UIFont fontWithName:fontName size:fontSize] :
-        [UIFont boldSystemFontOfSize:fontSize];
     
-    [self addSubview:self.titleLabel];
+    [self.labelsContainerView addSubview:self.titleLabel];
     
-    switch (self.messageViewType)
+    [self.labelsContainerView addConstraint:[NSLayoutConstraint constraintWithItem:self.titleLabel
+                                                                         attribute:NSLayoutAttributeLeading
+                                                                         relatedBy:NSLayoutRelationEqual
+                                                                            toItem:self.labelsContainerView
+                                                                         attribute:NSLayoutAttributeLeft
+                                                                        multiplier:1.0
+                                                                          constant:0.0]];
+    
+    [self.labelsContainerView addConstraint:[NSLayoutConstraint constraintWithItem:self.titleLabel
+                                                                         attribute:NSLayoutAttributeTrailing
+                                                                         relatedBy:NSLayoutRelationEqual
+                                                                            toItem:self.labelsContainerView
+                                                                         attribute:NSLayoutAttributeRight
+                                                                        multiplier:1.0
+                                                                          constant:0.0]];
+    
+    [self.labelsContainerView addConstraint:[NSLayoutConstraint constraintWithItem:self.titleLabel
+                                                                         attribute:NSLayoutAttributeTop
+                                                                         relatedBy:NSLayoutRelationEqual
+                                                                            toItem:self.labelsContainerView
+                                                                         attribute:NSLayoutAttributeTop
+                                                                        multiplier:1.0
+                                                                          constant:0.0]];
+    
+    if (self.messageViewType == TSMessageViewTypeTitle || self.messageViewType == TSMessageViewTypeImageTitle)
     {
-        case TSMessageViewTypeImageTitle:
-            [self addConstraint:[NSLayoutConstraint constraintWithItem:self.titleLabel
-                                                             attribute:NSLayoutAttributeBottom
-                                                             relatedBy:NSLayoutRelationEqual
-                                                                toItem:self
-                                                             attribute:NSLayoutAttributeBottom
-                                                            multiplier:1.0
-                                                              constant:-10.0]];
-        case TSMessageViewTypeImageTitleSubtitle:
-            [self addConstraint:[NSLayoutConstraint constraintWithItem:self.titleLabel
-                                                             attribute:NSLayoutAttributeTop
-                                                             relatedBy:NSLayoutRelationEqual
-                                                                toItem:self
-                                                             attribute:NSLayoutAttributeTop
-                                                            multiplier:1.0
-                                                              constant:10.0]];
-            
-            [self addConstraint:[NSLayoutConstraint constraintWithItem:self.titleLabel
-                                                             attribute:NSLayoutAttributeLeading
-                                                             relatedBy:NSLayoutRelationEqual
-                                                                toItem:self.iconImageView
-                                                             attribute:NSLayoutAttributeRight
-                                                            multiplier:1.0
-                                                              constant:10.0]];
-            
-            [self addConstraint:[NSLayoutConstraint constraintWithItem:self.titleLabel
-                                                             attribute:NSLayoutAttributeTrailing
-                                                             relatedBy:NSLayoutRelationEqual
-                                                                toItem:self
-                                                             attribute:NSLayoutAttributeRight
-                                                            multiplier:1.0
-                                                              constant:-10.0]];
-            
-            self.titleLabel.textAlignment = NSTextAlignmentLeft;
-            break;
-        case TSMessageViewTypeTitle:
-            [self addConstraint:[NSLayoutConstraint constraintWithItem:self.titleLabel
-                                                             attribute:NSLayoutAttributeBottom
-                                                             relatedBy:NSLayoutRelationEqual
-                                                                toItem:self
-                                                             attribute:NSLayoutAttributeBottom
-                                                            multiplier:1.0
-                                                              constant:-10.0]];
-        case TSMessageViewTypeTitleSubtitle:
-            [self addConstraint:[NSLayoutConstraint constraintWithItem:self.titleLabel
-                                                             attribute:NSLayoutAttributeTop
-                                                             relatedBy:NSLayoutRelationEqual
-                                                                toItem:self
-                                                             attribute:NSLayoutAttributeTop
-                                                            multiplier:1.0
-                                                              constant:10.0]];
-            
-            [self addConstraint:[NSLayoutConstraint constraintWithItem:self.titleLabel
-                                                             attribute:NSLayoutAttributeLeading
-                                                             relatedBy:NSLayoutRelationEqual
-                                                                toItem:self
-                                                             attribute:NSLayoutAttributeLeft
-                                                            multiplier:1.0
-                                                              constant:10.0]];
-            
-            [self addConstraint:[NSLayoutConstraint constraintWithItem:self.titleLabel
-                                                             attribute:NSLayoutAttributeTrailing
-                                                             relatedBy:NSLayoutRelationEqual
-                                                                toItem:self
-                                                             attribute:NSLayoutAttributeRight
-                                                            multiplier:1.0
-                                                              constant:-10.0]];
-            
-            self.titleLabel.textAlignment = NSTextAlignmentCenter;
-            break;
-        default:
-            break;
+        [self.labelsContainerView addConstraint:[NSLayoutConstraint constraintWithItem:self.titleLabel
+                                                                             attribute:NSLayoutAttributeBottom
+                                                                             relatedBy:NSLayoutRelationEqual
+                                                                                toItem:self.labelsContainerView
+                                                                             attribute:NSLayoutAttributeBottom
+                                                                            multiplier:1.0
+                                                                              constant:0.0]];
+        
+        fontSize += 2.0;
     }
+    
+    if (self.messageViewType == TSMessageViewTypeTitleSubtitle || self.messageViewType == TSMessageViewTypeTitle)
+    {
+        self.titleLabel.textAlignment = NSTextAlignmentCenter;
+    }
+    else
+    {
+        self.titleLabel.textAlignment = NSTextAlignmentLeft;
+    }
+    
+    self.titleLabel.font = fontName ? [UIFont fontWithName:fontName size:fontSize] : [UIFont boldSystemFontOfSize:fontSize];
 }
 
 - (void)setupSubtitle:(NSString *)subtitle
@@ -252,7 +273,7 @@
     
     if (!contentTextColor) contentTextColor = fontColor;
     
-    self.contentLabel = [[UILabel alloc] init];
+    self.contentLabel = [UILabel new];
     self.contentLabel.numberOfLines = 2;
     self.contentLabel.lineBreakMode = NSLineBreakByTruncatingTail;
 //    self.contentLabel.adjustsFontSizeToFitWidth = YES;
@@ -266,90 +287,66 @@
         [UIFont fontWithName:fontName size:fontSize] :
         [UIFont systemFontOfSize:fontSize];
     
-    [self addSubview:self.contentLabel];
+    [self.labelsContainerView addSubview:self.contentLabel];
+    
+    [self.labelsContainerView addConstraint:[NSLayoutConstraint constraintWithItem:self.contentLabel
+                                                                         attribute:NSLayoutAttributeLeading
+                                                                         relatedBy:NSLayoutRelationEqual
+                                                                            toItem:self.labelsContainerView
+                                                                         attribute:NSLayoutAttributeLeft
+                                                                        multiplier:1.0
+                                                                          constant:0.0]];
+    
+    [self.labelsContainerView addConstraint:[NSLayoutConstraint constraintWithItem:self.contentLabel
+                                                                         attribute:NSLayoutAttributeTrailing
+                                                                         relatedBy:NSLayoutRelationEqual
+                                                                            toItem:self.labelsContainerView
+                                                                         attribute:NSLayoutAttributeRight
+                                                                        multiplier:1.0
+                                                                          constant:0.0]];
+    
+    [self.labelsContainerView addConstraint:[NSLayoutConstraint constraintWithItem:self.contentLabel
+                                                                         attribute:NSLayoutAttributeBottom
+                                                                         relatedBy:NSLayoutRelationEqual
+                                                                            toItem:self.labelsContainerView
+                                                                         attribute:NSLayoutAttributeBottom
+                                                                        multiplier:1.0
+                                                                          constant:0.0]];
     
     switch (self.messageViewType)
     {
+        case TSMessageViewTypeTitleSubtitle:
         case TSMessageViewTypeImageTitleSubtitle:
-        case TSMessageViewTypeImageSubtitle:
-            [self addConstraint:[NSLayoutConstraint constraintWithItem:self.contentLabel
-                                                             attribute:NSLayoutAttributeBottom
-                                                             relatedBy:NSLayoutRelationEqual
-                                                                toItem:self
-                                                             attribute:NSLayoutAttributeBottom
-                                                            multiplier:1.0
-                                                              constant:-10.0]];
-            
-            [self addConstraint:[NSLayoutConstraint constraintWithItem:self.contentLabel
-                                                             attribute:NSLayoutAttributeLeading
-                                                             relatedBy:NSLayoutRelationEqual
-                                                                toItem:self.iconImageView
-                                                             attribute:NSLayoutAttributeRight
-                                                            multiplier:1.0
-                                                              constant:10.0]];
-            
-            [self addConstraint:[NSLayoutConstraint constraintWithItem:self.contentLabel
-                                                             attribute:NSLayoutAttributeRight
-                                                             relatedBy:NSLayoutRelationEqual
-                                                                toItem:self
-                                                             attribute:NSLayoutAttributeRight
-                                                            multiplier:1.0
-                                                              constant:-10.0]];
-            
-            self.contentLabel.textAlignment = NSTextAlignmentLeft;
+            [self.labelsContainerView addConstraint:[NSLayoutConstraint constraintWithItem:self.contentLabel
+                                                                                 attribute:NSLayoutAttributeTop
+                                                                                 relatedBy:NSLayoutRelationEqual
+                                                                                    toItem:self.titleLabel
+                                                                                 attribute:NSLayoutAttributeBottom
+                                                                                multiplier:1.0
+                                                                                  constant:0.0]];
             break;
         case TSMessageViewTypeSubtitle:
-        case TSMessageViewTypeTitleSubtitle:
-            [self addConstraint:[NSLayoutConstraint constraintWithItem:self.contentLabel
-                                                             attribute:NSLayoutAttributeLeading
-                                                             relatedBy:NSLayoutRelationEqual
-                                                                toItem:self
-                                                             attribute:NSLayoutAttributeLeft
-                                                            multiplier:1.0
-                                                              constant:10.0]];
-            
-            [self addConstraint:[NSLayoutConstraint constraintWithItem:self.contentLabel
-                                                             attribute:NSLayoutAttributeTrailing
-                                                             relatedBy:NSLayoutRelationEqual
-                                                                toItem:self
-                                                             attribute:NSLayoutAttributeRight
-                                                            multiplier:1.0
-                                                              constant:-10.0]];
-            
-            [self addConstraint:[NSLayoutConstraint constraintWithItem:self.contentLabel
-                                                             attribute:NSLayoutAttributeBottom
-                                                             relatedBy:NSLayoutRelationEqual
-                                                                toItem:self
-                                                             attribute:NSLayoutAttributeBottom
-                                                            multiplier:1.0
-                                                              constant:-10.0]];
-            
-            self.contentLabel.textAlignment = NSTextAlignmentCenter;
-            break;
+        case TSMessageViewTypeImageSubtitle:
+            [self.labelsContainerView addConstraint:[NSLayoutConstraint constraintWithItem:self.contentLabel
+                                                                                 attribute:NSLayoutAttributeTop
+                                                                                 relatedBy:NSLayoutRelationEqual
+                                                                                    toItem:self.labelsContainerView
+                                                                                 attribute:NSLayoutAttributeTop
+                                                                                multiplier:1.0
+                                                                                  constant:0.0]];
         default:
             break;
     }
     
-    if (self.messageViewType == TSMessageViewTypeImageTitleSubtitle || self.messageViewType == TSMessageViewTypeTitleSubtitle)
+    if (self.messageViewType == TSMessageViewTypeTitleSubtitle || self.messageViewType == TSMessageViewTypeSubtitle)
     {
-        [self addConstraint:[NSLayoutConstraint constraintWithItem:self.contentLabel
-                                                         attribute:NSLayoutAttributeTop
-                                                         relatedBy:NSLayoutRelationEqual
-                                                            toItem:self.titleLabel
-                                                         attribute:NSLayoutAttributeBottom
-                                                        multiplier:1.0
-                                                          constant:4.0]];
+        self.contentLabel.textAlignment = NSTextAlignmentCenter;
     }
-    else if (self.messageViewType == TSMessageViewTypeImageSubtitle || self.messageViewType == TSMessageViewTypeSubtitle)
+    else
     {
-        [self addConstraint:[NSLayoutConstraint constraintWithItem:self.contentLabel
-                                                         attribute:NSLayoutAttributeTop
-                                                         relatedBy:NSLayoutRelationEqual
-                                                            toItem:self
-                                                         attribute:NSLayoutAttributeTop
-                                                        multiplier:1.0
-                                                          constant:10.0]];
+        self.contentLabel.textAlignment = NSTextAlignmentLeft;
     }
+    
 }
 
 - (void)setupImage:(UIImage *)image

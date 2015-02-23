@@ -10,7 +10,7 @@
 #import "TSMessageView.h"
 #import "TSMessageView+Private.h"
 
-#define kTSMessageDisplayTime 1.5
+#define kTSMessageDisplayTime 2.0
 #define kTSMessageAnimationDuration 0.4
 #define kTSMessageExtraDisplayTimePerCharacter 0.03
 #define kTSDesignFileName @"TSMessagesDefaultDesign.json"
@@ -294,7 +294,7 @@
     // animate
     [UIView animateWithDuration:kTSMessageAnimationDuration + 0.1
                           delay:0.0
-         usingSpringWithDamping:0.7
+         usingSpringWithDamping:0.9
           initialSpringVelocity:0.0
                         options:UIViewAnimationOptionCurveEaseInOut | UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionAllowUserInteraction
                      animations:^{
@@ -307,7 +307,8 @@
     // duration
     if (messageView.duration == TSMessageDurationAutomatic)
     {
-        messageView.duration = kTSMessageAnimationDuration + kTSMessageDisplayTime + ((messageView.subtitle.length + messageView.title.length) * kTSMessageExtraDisplayTimePerCharacter);
+        messageView.duration = kTSMessageAnimationDuration + kTSMessageDisplayTime;
+        messageView.duration += ((MIN(messageView.subtitle.length, 100) + messageView.title.length) * kTSMessageExtraDisplayTimePerCharacter);
     }
 
     if (messageView.duration != TSMessageDurationEndless)
